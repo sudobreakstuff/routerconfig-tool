@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Terminal as XTerm } from 'xterm';
 import 'xterm/css/xterm.css';
-import { fetchDevices, fetchDevice, updateDevice, persistentConnect, persistentDisconnect, runSshCommand, scanFromDevice, checkTunnel } from '../services/api';
+import { fetchDevices, fetchDevice, updateDevice, persistentConnect, persistentDisconnect, runSshCommand, scanFromDevice, checkTunnel, openTunnelUrl } from '../services/api';
 
 export default function RemoteAccess() {
   const { deviceId } = useParams();
@@ -80,16 +80,16 @@ export default function RemoteAccess() {
   };
 
   const handleTunnel = async (target: string) => {
-    addOutput(`\n[Checking tunnel to ${target}...]\n`);
+    addOutput(`\n[Opening tunnel to ${target}...]\n`);
     try {
-      const res = await checkTunnel({ ...creds, target });
-      if (res.reachable) {
-        addOutput(`Reachable! Run:\n  ${res.command}\n  Then open http://localhost:8888\n\n`);
-        try { navigator.clipboard.writeText(res.command); } catch(_) {}
-      } else {
-        addOutput(`Not reachable from this CPE. ${res.tip||''}\n\n`);
+      const res = await openTunnelUrl({ ...creds, target });
+      if (res.url) {
+        addOutput(`Tunnel open: ${res.url}\n`);
+        window.open(res.url, '_blank');
+      } else if (res.error) {
+        addOutput(`Tunnel failed: ${res.error}\n`);
       }
-    } catch(_) { addOutput('Tunnel check failed\n'); }
+    } catch(_) { addOutput('Tunnel failed - check backend\n'); }
   };
 
   const handleAddAlias = async () => {
@@ -229,8 +229,8 @@ export default function RemoteAccess() {
             <button className="btn-sm btn-primary" onClick={handleCmd} disabled={!connected||!cmdInput.trim()} style={{ width: '100%' }}>Run</button>
           </fieldset>
 
-          <fieldset style={{ padding: 10, marginBottom: 8 }}>
-            <legend>IP Aliases</legend>
+          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>IP Aliases</div>
             <button className="btn-sm" onClick={handleAutoAliases} disabled={!connected} style={{ width: '100%', marginBottom: 6, background: '#fef3c7', borderColor: '#f59e0b' }}>
               Auto-Add & Scan
             </button>
@@ -240,7 +240,7 @@ export default function RemoteAccess() {
               <button className="btn-sm btn-primary" onClick={handleAddAlias} disabled={!connected||!aliasIp} style={{ flexShrink: 0 }}>Add</button>
             </div>
             {aliases.map((ip: string) => (
-              <div key={ip} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, padding: '2px 4px' }}>
+              <div key={ip} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, padding: '2px 0' }}>
                 <span style={{ fontFamily: 'monospace' }}>{ip}</span>
                 <button onClick={() => handleRemoveAlias(ip)} style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#dc2626', fontWeight: 'bold', fontSize: 14 }}>x</button>
               </div>
@@ -248,7 +248,7 @@ export default function RemoteAccess() {
             {aliases.length > 1 && (
               <button className="btn-sm btn-danger" onClick={async () => { for (const ip of aliases) await handleRemoveAlias(ip); }} style={{ width: '100%', fontSize: 10, marginTop: 4 }}>Remove All</button>
             )}
-          </fieldset>
+          </div>
         </div>
 
         {/* Main area */}

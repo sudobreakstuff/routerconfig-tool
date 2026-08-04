@@ -222,3 +222,8 @@ export async function checkTunnel(tunnelData: Record<string, unknown>) {
   const { data } = await api.post('/actions/tunnel-check', tunnelData);
   return data;
 }
+
+export async function openTunnelUrl(tunnelData: Record<string, unknown>) {
+  const { data } = await api.post('/actions/tunnel-open', tunnelData);
+  return data;
+}

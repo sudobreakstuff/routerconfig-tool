@@ -173,7 +173,6 @@ async def tunnel_check(data: dict):
     if not host or not target:
         raise HTTPException(status_code=400, detail="host and target are required")
 
-    # Check reachability
     reachable = False
     try:
         out = await pool.execute(host, username, password,
@@ -182,15 +181,13 @@ async def tunnel_check(data: dict):
     except Exception:
         pass
 
-    # Try to fix route if unreachable
     if not reachable:
         subnet = ".".join(target.split(".")[:3]) + ".0"
         try:
             await pool.execute(host, username, password,
                 f"route add -net {subnet} netmask 255.255.255.0 eth0 2>&1; ip route add {subnet}/24 dev eth0 2>&1; echo DONE",
                 22, timeout=5)
-            import asyncio
-            await asyncio.sleep(0.5)
+            import asyncio; await asyncio.sleep(0.5)
             out2 = await pool.execute(host, username, password,
                 f"ping -c 2 -W 2 {target} 2>&1", 22, timeout=10)
             reachable = "bytes from" in out2.lower()
@@ -201,5 +198,92 @@ async def tunnel_check(data: dict):
         "reachable": reachable,
         "command": f"ssh -L 8888:{target}:80 {username}@{host} -p 22",
         "tip": "Run this in your terminal, then open http://localhost:8888" if reachable
-               else f"Cannot reach {target} from this CPE. Check alias and routing."
+               else f"Cannot reach {target} from this CPE."
     }
+
+
+@router.post("/tunnel-open")
+async def tunnel_open(data: dict):
+    """Open an SSH tunnel to a downstream device and return local URL."""
+    import random, socket, threading, select as _select
+
+    host = data.get("host", "")
+    username = data.get("username", "admin")
+    password = data.get("password", "")
+    target = data.get("target", "")
+
+    if not host or not target:
+        raise HTTPException(status_code=400, detail="host and target required")
+
+    # Get persistent SSH connection
+    try:
+        ssh = pool.get(host, username, password, 22)
+    except Exception as e:
+        return {"error": f"Cannot connect: {e}"}
+
+    # Verify target is reachable first
+    try:
+        _s, _o, _e = ssh.exec_command(f"ping -c 1 -W 2 {target} 2>&1", timeout=5)
+        out = _o.read().decode()
+        if "bytes from" not in out.lower():
+            return {"error": f"Target {target} not reachable from CPE. Check routing."}
+    except Exception as e:
+        return {"error": str(e)}
+
+    # Allocate local port
+    local_port = random.randint(10000, 20000)
+
+    def forward():
+        try:
+            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind(("127.0.0.1", local_port))
+            server.listen(1)
+            server.settimeout(30)
+
+            while True:
+                try:
+                    conn, _ = server.accept()
+                except socket.timeout:
+                    break
+                except Exception:
+                    break
+
+                try:
+                    chan = ssh.get_transport().open_channel("direct-tcpip", (target, 80), ("127.0.0.1", 0))
+                except Exception:
+                    try: conn.close()
+                    except: pass
+                    continue
+
+                def copy(a, b):
+                    try:
+                        while True:
+                            r, _, _ = _select.select([a, b], [], [], 5)
+                            if not r: continue
+                            for fd in r:
+                                try:
+                                    d = fd.recv(8192)
+                                    if not d: return
+                                    (b if fd is a else a).sendall(d)
+                                except Exception: return
+                    except Exception: pass
+                    finally:
+                        try: a.close()
+                        except: pass
+                        try: b.close()
+                        except: pass
+
+                threading.Thread(target=copy, args=(conn, chan), daemon=True).start()
+                threading.Thread(target=copy, args=(chan, conn), daemon=True).start()
+
+        except Exception:
+            pass
+        finally:
+            try: server.close()
+            except: pass
+
+    threading.Thread(target=forward, daemon=True).start()
+    import asyncio; await asyncio.sleep(0.5)
+
+    return {"url": f"http://127.0.0.1:{local_port}", "port": local_port}

@@ -171,6 +171,10 @@ OUI_DB = {
     "FC8B97": "Ubiquiti",
     "FCECDA": "Ubiquiti",
 
+    "B40F3B": "TP-Link",
+    "1CF29A": "TP-Link",
+    "0C9D92": "TP-Link",
+
     "4C5E0C": "MikroTik",
     "6C3B6B": "MikroTik",
     "D4CA6D": "MikroTik",
