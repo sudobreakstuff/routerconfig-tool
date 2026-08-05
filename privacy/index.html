@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RouterConfig Pro — Privacy</title>
+<meta name="description" content="RouterConfig Pro privacy policy: local-first router configuration tool. No telemetry, no accounts, encrypted local storage.">
+<link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav id="nav">
+  <div class="nav-inner">
+    <a class="brand" href="../"><img src="../assets/logo.svg" alt=""><span>ROUTERCONFIG<span class="accent"> PRO</span></span></a>
+    <div class="nav-links">
+      <a href="../#features">Features</a>
+      <a href="../#workflow">Workflow</a>
+      <a href="../#compare">Compare</a>
+      <a href="../#about">About</a>
+      <a href="../download/">Download</a>
+      <a class="nav-cta" href="../download/">Get the app</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-head">
+  <div class="container">
+    <h1>Privacy Policy</h1>
+    <p class="legal-date">Effective August 2026</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container narrow legal">
+    <h2>What RouterConfig Pro collects</h2>
+    <p>Nothing. RouterConfig Pro is a local-first application. It runs entirely on your machine and
+      performs no telemetry, analytics, crash reporting or usage tracking.</p>
+
+    <h2>Where your data lives</h2>
+    <p>All application data — your device list, connection profiles, templates, and settings — is
+      stored on your own computer in a local data directory
+      (<span class="mono">RC_DATA_DIR</span>, default <span class="mono">~/.routerconfig/</span>).
+      No copy of this data is sent to us or to any server controlled by us.</p>
+
+    <h2>Device credentials and secrets</h2>
+    <p>Router credentials, connection profiles, and ISP API keys are stored locally in an encrypted
+      form (Fernet). The API exposed by the local backend is protected by a per-install token and is
+      only reachable from the local app origins.</p>
+
+    <h2>What the app connects to</h2>
+    <p>RouterConfig Pro connects only to the devices and services you explicitly configure: the SSH
+      endpoints of your own routers, and any ISP inventory service you opt into for device uploads
+      (for example the Jenny Internet adapter). It does not make background connections to us.</p>
+
+    <h2>GitHub Pages site</h2>
+    <p>This website is served statically from GitHub Pages. It loads fonts from Google Fonts; those
+      requests are subject to Google's privacy policy. The site itself does not set cookies or run
+      tracking scripts.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes, the effective date above will be updated. Since the app is open
+      source, you can audit exactly what it does at any time.</p>
+
+    <h2>Contact</h2>
+    <p>Questions or concerns? Open an issue on the
+      <a href="https://github.com/sudobreakstuff/routerconfig-tool/issues">GitHub repository</a>.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container foot-inner">
+    <span><img src="../assets/logo.svg" alt=""> <strong>ROUTERCONFIG PRO</strong> — discover. configure. deploy.</span>
+    <span>
+      <a href="../download/">Download</a> ·
+      <a href="../#features">Features</a> ·
+      <a href="https://github.com/sudobreakstuff/routerconfig-tool">GitHub</a> ·
+      <a href="../privacy/">Privacy</a> ·
+      <a href="../terms/">Terms</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
