@@ -39,14 +39,22 @@ jobs:
         shell: bash
         run: |
           python -m venv backend/.venv
-          backend/.venv/bin/pip install -q -e backend pyinstaller
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            backend/.venv/Scripts/pip install -q -e backend pyinstaller
+          else
+            backend/.venv/bin/pip install -q -e backend pyinstaller
+          fi
 
       - name: Bundle backend (PyInstaller)
         shell: bash
         working-directory: backend
         run: |
           rm -rf build dist
-          .venv/bin/pyinstaller routerconfig-backend.spec --noconfirm --clean
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            .venv/Scripts/pyinstaller routerconfig-backend.spec --noconfirm --clean
+          else
+            .venv/bin/pyinstaller routerconfig-backend.spec --noconfirm --clean
+          fi
 
       - name: Install frontend deps
         working-directory: frontend
