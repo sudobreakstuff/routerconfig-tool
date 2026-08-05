@@ -4,6 +4,10 @@
   "description": "Multi-vendor router auto-configuration and remote management",
   "main": "electron/main.js",
   "repository": "https://github.com/sudobreakstuff/routerconfig-tool",
+  "author": {
+    "name": "Shahid Singh",
+    "email": "shahidsingh1zn@gmail.com"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -43,6 +47,7 @@
   "build": {
     "appId": "com.sudobreakstuff.routerconfig-pro",
     "productName": "RouterConfig Pro",
+    "artifactName": "RouterConfigPro-${version}-${arch}.${ext}",
     "linux": {
       "target": ["AppImage", "deb"],
       "category": "Network"
