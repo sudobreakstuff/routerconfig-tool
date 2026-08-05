@@ -1,4 +1,4 @@
-/* RouterConfig Pro site — hero packet canvas, event ticker, mini-charts, counters, reveal. */
+/* RouterConfig Pro site — hero packet canvas, event ticker, counters, reveal. */
 
 (function () {
   "use strict";
@@ -104,56 +104,6 @@
     draw();
   }
 
-  /* ------------------------------------------------------------ mini charts */
-  function drawChart(container, style) {
-    var w = container.clientWidth, h = container.clientHeight;
-    if (!w) w = 280;
-    if (!h) h = 90;
-    var cv = document.createElement("canvas");
-    cv.width = w * 2; cv.height = h * 2;
-    cv.style.width = w + "px"; cv.style.height = h + "px";
-    container.appendChild(cv);
-    var g = cv.getContext("2d");
-    g.scale(2, 2);
-
-    var n = 44, pts = [];
-    for (var i = 0; i < n; i++) {
-      var v = 50;
-      if (style === "flow") v = 50 + Math.sin(i / 4.2) * 16 + (Math.random() - 0.5) * 6;
-      else if (style === "deploy") v = 26 + Math.pow(i / n, 2) * 34 + Math.sin(i / 2.6) * 3;
-      else if (style === "diag") v = 50 + (Math.random() < 0.18 ? -18 : (Math.random() - 0.5) * 10);
-      else if (style === "bulk") v = 50 + Math.sin(i / 3.1) * 14 + (Math.random() - 0.5) * 8;
-      else if (style === "tunnel") v = 50 + Math.cos(i / 1.9) * 12;
-      else v = 50 + Math.sin(i / 5) * 18 + (Math.random() - 0.5) * 4;
-      pts.push(Math.max(8, Math.min(92, v)));
-    }
-    var step = w / (n - 1);
-    for (var k = 1; k < n; k++) {
-      var up = pts[k] >= pts[k - 1];
-      g.strokeStyle = up ? "rgba(245,165,36,.85)" : "rgba(240,90,90,.8)";
-      g.fillStyle = up ? "rgba(245,165,36,.25)" : "rgba(240,90,90,.22)";
-      g.lineWidth = 1.6;
-      g.beginPath();
-      g.moveTo((k - 1) * step, h - pts[k - 1]);
-      g.lineTo(k * step, h - pts[k]);
-      g.stroke();
-      var bw = Math.max(2, step * 0.5);
-      g.fillRect((k - 1) * step, Math.min(h - pts[k - 1], h - pts[k]), bw, Math.max(2, Math.abs(pts[k] - pts[k - 1])));
-    }
-  }
-
-  document.querySelectorAll(".mini-chart").forEach(function (el) {
-    drawChart(el, el.dataset.style || "topo");
-  });
-  if ("ResizeObserver" in window) {
-    new ResizeObserver(function () {
-      document.querySelectorAll(".mini-chart").forEach(function (el) {
-        el.innerHTML = "";
-        drawChart(el, el.dataset.style || "topo");
-      });
-    }).observe(document.getElementById("features") || document.body);
-  }
-
   /* ------------------------------------------------------------ counters */
   var counted = false;
   function animateCounters() {
@@ -185,7 +135,7 @@
       if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
     });
   }, { threshold: 0.12 });
-  document.querySelectorAll(".section, .use-card, .pf-step, .wsf").forEach(function (el) {
+  document.querySelectorAll(".section, .loop-step, .wsf, .spec-row").forEach(function (el) {
     el.classList.add("reveal");
     io.observe(el);
   });

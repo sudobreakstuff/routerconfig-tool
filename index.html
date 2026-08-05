@@ -85,59 +85,84 @@
     <p class="lead">Real workflows against real devices — every one of these talks to actual
       hardware over SSH.</p>
 
-    <div class="use-grid">
+    <div class="cap-wrap">
 
-      <article class="use-card">
-        <div class="mini-chart" data-style="topo"></div>
-        <h3>Discovery</h3>
-        <p class="use-tip"><strong>See the network:</strong> scan with ARP, DHCP and vendor probes,
-          resolve the maker from the MAC address, and map how routers hang off each other downstream.</p>
-        <div class="chips"><span>ARP Scan</span><span>OUI Lookup</span><span>Downstream Map</span></div>
-      </article>
+      <div class="terminal">
+        <div class="term-bar">
+          <span class="term-dots"><i></i><i></i><i></i></span>
+          <span class="term-title">routerconfig — field session</span>
+        </div>
+        <div class="term-body">
+          <div><span class="t-cmd">rc discover 192.168.1.0/24</span></div>
+          <div class="t-out">scan → 14 hosts · 4 vendors · downstream map ready <span class="t-ok">✓</span></div>
+          <div>&nbsp;</div>
+          <div><span class="t-cmd">rc apply CPE-0417 --wifi --dhcp --alias</span></div>
+          <div class="t-out">EdgeOS config written · verified <span class="t-ok">✓</span></div>
+          <div>&nbsp;</div>
+          <div><span class="t-cmd">rc deploy CPE-0417</span></div>
+          <div class="t-out">config OK · pushed to ISP inventory <span class="t-ok">✓</span></div>
+          <div>&nbsp;</div>
+          <div><span class="t-cmd">rc tunnel CPE-0056</span></div>
+          <div class="t-out">ssh 127.0.0.1:34211 → downstream live <span class="t-ok">✓</span></div>
+          <div>&nbsp;</div>
+          <div><span class="t-cmd">rc bulk reboot --group=coastal</span></div>
+          <div class="t-out">18 devices · 0 failures <span class="t-ok">✓</span><span class="t-cursor"></span></div>
+        </div>
+      </div>
 
-      <article class="use-card">
-        <div class="mini-chart" data-style="flow"></div>
-        <h3>Auto-config</h3>
-        <p class="use-tip"><strong>One template, any vendor:</strong> apply Wi-Fi, DHCP, admin
-          password and aliases through each device's native interface — EdgeOS files, RouterOS CLI,
-          TP-Link forms.</p>
-        <div class="chips"><span>Ubiquiti</span><span>MikroTik</span><span>TP-Link</span></div>
-      </article>
-
-      <article class="use-card">
-        <div class="mini-chart" data-style="deploy"></div>
-        <h3>One-click deploy</h3>
-        <p class="use-tip"><strong>Configure and verify</strong> in a single action, then push the
-          device to your ISP inventory. New customer, done.</p>
-        <div class="chips"><span>Configure</span><span>Verify</span><span>ISP Upload</span></div>
-      </article>
-
-      <article class="use-card">
-        <div class="mini-chart" data-style="diag"></div>
-        <h3>Diagnostics</h3>
-        <p class="use-tip"><strong>Stop guessing:</strong> health checks and config diffs show which
-          link is failing instead of sending someone out to look.</p>
-        <div class="chips"><span>Health Checks</span><span>Config Diff</span><span>Per-vendor</span></div>
-      </article>
-
-      <article class="use-card">
-        <div class="mini-chart" data-style="tunnel"></div>
-        <h3>Live tunnels</h3>
-        <p class="use-tip"><strong>Reach anything:</strong> open a temporary SSH tunnel to any
-          downstream device and drive it with a real terminal — or hand the session to a field tech.</p>
-        <div class="chips"><span>xterm.js</span><span>Downstream</span><span>Idle Timeout</span></div>
-      </article>
-
-      <article class="use-card">
-        <div class="mini-chart" data-style="bulk"></div>
-        <h3>Bulk ops</h3>
-        <p class="use-tip"><strong>Fleet-wide fixes:</strong> reboot, factory reset, restore config,
-          or upgrade firmware across many devices at once, with progress tracked per unit.</p>
-        <div class="chips"><span>Concurrent</span><span>Firmware</span><span>Restore</span></div>
-      </article>
+      <div class="spec-list">
+        <div class="spec-row">
+          <div class="spec-cmd">discover</div>
+          <div class="spec-body">
+            <h3>Scan &amp; map the network</h3>
+            <p>ARP, DHCP and vendor probes; MAC-OUI lookup; downstream topology.</p>
+            <div class="spec-tags"><span>arp</span><span>oui</span><span>map</span></div>
+          </div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-cmd">apply</div>
+          <div class="spec-body">
+            <h3>Vendor-native config</h3>
+            <p>One template through each device's own interface — EdgeOS files, RouterOS CLI, TP-Link forms.</p>
+            <div class="spec-tags"><span>ubiquiti</span><span>mikrotik</span><span>tplink</span></div>
+          </div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-cmd">deploy</div>
+          <div class="spec-body">
+            <h3>Configure, verify, ship</h3>
+            <p>Run the full setup then push the device to your ISP inventory in one action.</p>
+            <div class="spec-tags"><span>verify</span><span>isp-upload</span></div>
+          </div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-cmd">diag</div>
+          <div class="spec-body">
+            <h3>Diagnose the failure</h3>
+            <p>Health checks and config diffs point at the failing link before anyone drives out.</p>
+            <div class="spec-tags"><span>health</span><span>diff</span></div>
+          </div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-cmd">tunnel</div>
+          <div class="spec-body">
+            <h3>Reach downstream gear</h3>
+            <p>Temporary SSH tunnels into any device, driven with a real terminal or handed to a field tech.</p>
+            <div class="spec-tags"><span>xterm</span><span>downstream</span></div>
+          </div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-cmd">bulk</div>
+          <div class="spec-body">
+            <h3>Fleet-wide fixes</h3>
+            <p>Reboot, reset, restore config or upgrade firmware across many devices, tracked per unit.</p>
+            <div class="spec-tags"><span>reboot</span><span>firmware</span><span>restore</span></div>
+          </div>
+        </div>
+      </div>
 
     </div>
-    <p class="center-note">Raw power is always one click away: a full SSH terminal into any device,
+    <p class="center-note">And raw power is always one click away: a full SSH terminal into any device,
       plus <em>backup / restore config</em> and <em>firmware upgrade</em> where the vendor allows it.</p>
   </div>
 </section>
@@ -148,23 +173,26 @@
     <h2>New device, three steps, <span class="accent">no phone calls</span></h2>
     <p class="lead">This is the core loop for an installer or a NOC tech.</p>
 
-    <div class="pair-flow">
-      <div class="pf-step">
-        <div class="pf-num">1</div>
-        <div class="pf-title">Discover</div>
-        <p>Scan the network and pick the device out of the list.</p>
+    <div class="loop">
+      <div class="loop-idx">01 / discover</div>
+      <div class="loop-step">
+        <div class="loop-cmd">discover <span class="in">--subnet 192.168.1.0/24</span></div>
+        <p class="loop-desc">Scan the network, pick the device out of the list, and see how it hangs off the rest.</p>
+        <div class="loop-out">14 hosts · 3 vendors · 1 map</div>
       </div>
-      <div class="pf-arrow">→</div>
-      <div class="pf-step">
-        <div class="pf-num">2</div>
-        <div class="pf-title">Configure</div>
-        <p>Vendor-correct config applied — Wi-Fi, DHCP, passwords, aliases.</p>
+
+      <div class="loop-idx">02 / configure</div>
+      <div class="loop-step">
+        <div class="loop-cmd">apply <span class="in">CPE-0417 --wifi --dhcp --alias</span></div>
+        <p class="loop-desc">Vendor-correct config applied — Wi-Fi, DHCP, admin password, aliases, firewall.</p>
+        <div class="loop-out">EdgeOS written · verified</div>
       </div>
-      <div class="pf-arrow">→</div>
-      <div class="pf-step">
-        <div class="pf-num">3</div>
-        <div class="pf-title">Deploy</div>
-        <p>Verified and pushed to the ISP inventory. Customer is live.</p>
+
+      <div class="loop-idx">03 / deploy</div>
+      <div class="loop-step">
+        <div class="loop-cmd">deploy <span class="in">CPE-0417</span></div>
+        <p class="loop-desc">Push the configured device to the ISP inventory. Customer is live.</p>
+        <div class="loop-out">config OK · pushed to inventory</div>
       </div>
     </div>
 
