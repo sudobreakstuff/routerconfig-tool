@@ -1,12 +1,13 @@
-import os
 import base64
+import os
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-
-_KEY_PATH = os.path.expanduser("~/.routerconfig/encryption.key")
+_KEY_PATH = os.path.join(
+    os.environ.get("RC_DATA_DIR", os.path.expanduser("~/.routerconfig")), "encryption.key"
+)
 _SALT = b"routerconfig-pro-static-salt-v1"
 
 

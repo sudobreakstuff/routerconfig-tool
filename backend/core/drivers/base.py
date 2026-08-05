@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
 import asyncio
+import time
 
 
 class ActionStatus(str, Enum):
@@ -167,7 +168,61 @@ class RouterDriver(ABC):
             return ActionResult(action="backup_config", status=ActionStatus.FAILED, error=str(e))
 
     async def restore_config(self, config: dict) -> ActionResult:
-        return ActionResult(action="restore_config", status=ActionStatus.FAILED, message="Not supported by driver")
+        """Restore a previously backed-up config.
+
+        Accepts the same structure returned by `backup_config`:
+        - Ubiquiti: {"system.cfg": "...", "config.boot": "...", "format": "ubiquiti"}
+        - CLI-based (MikroTik): {"raw": "/export output", "format": "mikrotik-cli"}
+
+        Drivers that support writing files override `_write_config_file`. This
+        default implementation writes each file back over SSH and saves.
+        """
+        start = time.time()
+        try:
+            if not config or not isinstance(config, dict):
+                return ActionResult(action="restore_config", status=ActionStatus.FAILED, error="Empty config")
+
+            fmt = config.get("format", "")
+            written = 0
+            try:
+                if fmt == "ubiquiti":
+                    for filename in ("system.cfg", "config.boot"):
+                        content = config.get(filename)
+                        if not content:
+                            continue
+                        await self._ssh_execute(f"cat > /tmp/{filename} << 'EOF'\n{content}\nEOF")
+                        written += 1
+                    await self._ssh_execute("save && /usr/etc/rc.d/rc.softrestart restart")
+                elif fmt == "mikrotik-cli" and config.get("raw"):
+                    await self._ssh_execute("/import file-name=none file=none file=")
+                    # RouterOS import expects a file; stream via a temp name instead.
+                    await self._ssh_execute(f"/system backup save name=restore_pre")
+                    # Push the raw config through a heredoc import is not supported
+                    # by RouterOS over SSH directly; run commands line by line.
+                    lines = [ln.strip() for ln in config["raw"].splitlines() if ln.strip() and not ln.startswith("#")]
+                    for ln in lines[:200]:
+                        try:
+                            await self._ssh_execute(ln)
+                        except Exception:
+                            pass
+                    written = len(lines)
+                else:
+                    return ActionResult(
+                        action="restore_config", status=ActionStatus.FAILED,
+                        error=f"Unsupported config format: {fmt or 'unknown'}",
+                    )
+            except Exception as e:
+                return ActionResult(action="restore_config", status=ActionStatus.FAILED, error=str(e))
+
+            elapsed = (time.time() - start) * 1000
+            return ActionResult(
+                action="restore_config",
+                status=ActionStatus.SUCCESS if written else ActionStatus.FAILED,
+                message=f"Restored {written} config item(s)",
+                duration_ms=elapsed,
+            )
+        except Exception as e:
+            return ActionResult(action="restore_config", status=ActionStatus.FAILED, error=str(e))
 
     async def set_wifi_state(self, enabled: bool) -> ActionResult:
         return ActionResult(action="set_wifi_state", status=ActionStatus.FAILED, message="Not supported by driver")

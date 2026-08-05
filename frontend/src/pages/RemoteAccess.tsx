@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Terminal as XTerm } from 'xterm';
 import 'xterm/css/xterm.css';
-import { fetchDevices, fetchDevice, updateDevice, persistentConnect, persistentDisconnect, runSshCommand, scanFromDevice, checkTunnel, openTunnelUrl } from '../services/api';
+import { fetchDevices, fetchDevice, updateDevice, persistentConnect, persistentDisconnect, runSshCommand, scanFromDevice, openTunnelUrl, fetchActiveTunnels, closeTunnel } from '../services/api';
 
 export default function RemoteAccess() {
   const { deviceId } = useParams();
@@ -11,7 +11,9 @@ export default function RemoteAccess() {
   const xtermRef = useRef<XTerm | null>(null);
 
   const [devices, setDevices] = useState<any[]>([]);
-  const [selId, setSelId] = useState(deviceId || '');
+  const [selId, setSelId] = useState(() => {
+    try { return sessionStorage.getItem('rc-selected-device') || (deviceId || ''); } catch { return deviceId || ''; }
+  });
   const [device, setDevice] = useState<any>(null);
   const [creds, setCreds] = useState<Record<string,string>>({ host:'', username:'', password:'' });
   const [connected, setConnected] = useState(false);
@@ -20,9 +22,20 @@ export default function RemoteAccess() {
   const [aliases, setAliases] = useState<any[]>([]);
   const [aliasIp, setAliasIp] = useState('');
   const [cmdInput, setCmdInput] = useState('');
-  const [output, setOutput] = useState('');
+  const [output, setOutput] = useState(() => {
+    try { return sessionStorage.getItem('rc-terminal-output') || ''; } catch { return ''; }
+  });
+  const [tunnels, setTunnels] = useState<any[]>([]);
 
-  useEffect(() => { fetchDevices().then(setDevices).catch(()=>{}); }, []);
+  useEffect(() => {
+    try { sessionStorage.setItem('rc-terminal-output', output); } catch {}
+  }, [output]);
+
+  const refreshTunnels = () => {
+    fetchActiveTunnels().then(res => setTunnels(res.tunnels || [])).catch(()=>{});
+  };
+
+  useEffect(() => { fetchDevices().then(setDevices).catch(()=>{}); refreshTunnels(); }, []);
   useEffect(() => {
     if (selId) {
       fetchDevice(selId, true).then(d => {
@@ -86,10 +99,18 @@ export default function RemoteAccess() {
       if (res.url) {
         addOutput(`Tunnel open: ${res.url}\n`);
         window.open(res.url, '_blank');
+        refreshTunnels();
+      } else if (res.detail) {
+        addOutput(`Tunnel failed: ${res.detail}\n`);
       } else if (res.error) {
         addOutput(`Tunnel failed: ${res.error}\n`);
       }
     } catch(_) { addOutput('Tunnel failed - check backend\n'); }
+  };
+
+  const handleCloseTunnel = async (t: any) => {
+    try { await closeTunnel(t.id); } catch(_) {}
+    refreshTunnels();
   };
 
   const handleAddAlias = async () => {
@@ -179,7 +200,7 @@ export default function RemoteAccess() {
 
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <select value={selId} onChange={e => { setSelId(e.target.value); setConnected(false); setScanned([]); setAliases([]); setOutput(''); }}
+        <select value={selId} onChange={e => { const v = e.target.value; setSelId(v); try { sessionStorage.setItem('rc-selected-device', v); } catch {} setConnected(false); setScanned([]); setAliases([]); setOutput(''); }}
           style={{ minWidth: 200, fontSize: 12 }}>
           <option value="">Select device...</option>
           {devices.map(d => <option key={d.id} value={d.id}>{d.name} ({d.ip_address||'?'})</option>)}
@@ -248,6 +269,23 @@ export default function RemoteAccess() {
             {aliases.length > 1 && (
               <button className="btn-sm btn-danger" onClick={async () => { for (const ip of aliases) await handleRemoveAlias(ip); }} style={{ width: '100%', fontSize: 10, marginTop: 4 }}>Remove All</button>
             )}
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>Tunnels</div>
+              <button className="btn-sm" onClick={refreshTunnels} style={{ fontSize: 10, padding: '1px 6px' }}>Refresh</button>
+            </div>
+            {tunnels.length === 0 && <div style={{ fontSize: 11, color: '#9ca3af' }}>No open tunnels</div>}
+            {tunnels.map(t => (
+              <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, padding: '3px 0', borderBottom: '1px solid #f3f4f6' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.target}</div>
+                  <a href={t.url} target="_blank" rel="noreferrer" style={{ color: '#2563eb', fontSize: 10 }}>{t.url}</a>
+                </div>
+                <button onClick={() => handleCloseTunnel(t)} style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#dc2626', fontWeight: 'bold', fontSize: 14, flexShrink: 0 }}>x</button>
+              </div>
+            ))}
           </div>
         </div>
 

@@ -1,9 +1,10 @@
 import uvicorn
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api import devices, configs, discovery, diagnostics, templates, remote, actions, jobs, isp, settings
+from core.auth import require_token
 from database.connection import init_db
 
 
@@ -23,21 +24,28 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "null",
+        ],
+        allow_origin_regex=r"^file://.*$",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    app.include_router(devices.router, prefix="/api/devices", tags=["Devices"])
-    app.include_router(configs.router, prefix="/api/configs", tags=["Config"])
-    app.include_router(discovery.router, prefix="/api/discovery", tags=["Discovery"])
-    app.include_router(diagnostics.router, prefix="/api/diagnostics", tags=["Diagnostics"])
-    app.include_router(templates.router, prefix="/api/templates", tags=["Templates"])
-    app.include_router(remote.router, prefix="/api/remote", tags=["Remote Access"])
-    app.include_router(actions.router, prefix="/api/actions", tags=["Actions"])
-    app.include_router(jobs.router, prefix="/api/jobs", tags=["Jobs"])
-    app.include_router(isp.router, prefix="/api/isp", tags=["ISP"])
+    protected = [Depends(require_token)]
+    app.include_router(devices.router, prefix="/api/devices", tags=["Devices"], dependencies=protected)
+    app.include_router(configs.router, prefix="/api/configs", tags=["Config"], dependencies=protected)
+    app.include_router(discovery.router, prefix="/api/discovery", tags=["Discovery"], dependencies=protected)
+    app.include_router(diagnostics.router, prefix="/api/diagnostics", tags=["Diagnostics"], dependencies=protected)
+    app.include_router(templates.router, prefix="/api/templates", tags=["Templates"], dependencies=protected)
+    app.include_router(remote.router, prefix="/api/remote", tags=["Remote Access"], dependencies=protected)
+    app.include_router(actions.router, prefix="/api/actions", tags=["Actions"], dependencies=protected)
+    app.include_router(jobs.router, prefix="/api/jobs", tags=["Jobs"], dependencies=protected)
+    app.include_router(isp.router, prefix="/api/isp", tags=["ISP"], dependencies=protected)
+    # settings is intentionally unprotected so the renderer can bootstrap its token.
     app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
 
     @app.get("/api/health")

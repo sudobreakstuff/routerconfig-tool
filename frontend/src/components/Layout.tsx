@@ -90,7 +90,7 @@ export default function Layout() {
               <div className="dropdown-menu" onClick={e => e.stopPropagation()}>
                 {mb.items.map((item, i) =>
                   item.divider ? <hr key={i} /> : (
-                    <button key={i} onClick={() => { item.action(); setOpenMenu(''); }}>
+                    <button key={i} onClick={() => { if (item.action) item.action(); setOpenMenu(''); }}>
                       {item.label}
                     </button>
                   )

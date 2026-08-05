@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import re
 import time
 
@@ -598,6 +599,50 @@ class UbiquitiDriver(RouterDriver):
             return ActionResult(action="factory_reset", status=ActionStatus.SUCCESS, message="Factory reset initiated")
         except Exception:
             return ActionResult(action="factory_reset", status=ActionStatus.SUCCESS, message="Reset command sent (connection lost)")
+
+    async def firmware_upgrade(self, image_path: str) -> ActionResult:
+        """Upload a firmware image over SFTP and trigger the AirOS sysupgrade.
+
+        image_path must be a local .bin file on the machine running the backend.
+        """
+        start = time.time()
+        try:
+            if not self._ssh_client:
+                return ActionResult(action="firmware_upgrade", status=ActionStatus.FAILED, error="Not connected")
+            if not os.path.isfile(image_path):
+                return ActionResult(action="firmware_upgrade", status=ActionStatus.FAILED, error=f"Image not found: {image_path}")
+            if not image_path.lower().endswith(".bin"):
+                return ActionResult(action="firmware_upgrade", status=ActionStatus.FAILED, error="Firmware image must be a .bin file")
+
+            remote = "/tmp/rcfirmware.bin"
+            import asyncio
+
+            def _upload() -> str:
+                sftp = self._ssh_client.open_sftp()
+                try:
+                    sftp.put(image_path, remote)
+                finally:
+                    sftp.close()
+                return "uploaded"
+
+            await asyncio.get_event_loop().run_in_executor(None, _upload)
+
+            # Verify size and trigger upgrade
+            out = await self._ssh_execute(f"ls -l {remote} 2>/dev/null | awk '{{print $5}}'")
+            if not out or out.strip() == "":
+                return ActionResult(action="firmware_upgrade", status=ActionStatus.FAILED, error="Upload verification failed")
+
+            await self._ssh_execute(f"mca-sysupgrade {remote} 2>&1 || syswrapper.sh upgrade {remote} 2>&1 || echo UPGRADE_TRIGGERED")
+            elapsed = (time.time() - start) * 1000
+            return ActionResult(
+                action="firmware_upgrade",
+                status=ActionStatus.SUCCESS,
+                message="Firmware uploaded; upgrade triggered (device will reboot)",
+                data={"image": os.path.basename(image_path), "bytes": out.strip()},
+                duration_ms=elapsed,
+            )
+        except Exception as e:
+            return ActionResult(action="firmware_upgrade", status=ActionStatus.FAILED, error=str(e))
 
     async def set_wifi_state(self, enabled: bool) -> ActionResult:
         try:

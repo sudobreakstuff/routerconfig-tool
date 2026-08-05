@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { scanNetwork, testConnection, setupDevice, readDeviceConfig, openTunnel, createDevice } from '../services/api';
+import { scanNetwork, testConnection, setupDevice, readDeviceConfig, openTunnelUrl, createDevice } from '../services/api';
 
 export default function SetupWizard() {
   const navigate = useNavigate();
@@ -75,15 +75,14 @@ export default function SetupWizard() {
 
   const handleTunnelToIp = async (targetIp: string) => {
     try {
-      const res = await openTunnel({
-        jump_host: ip,
-        jump_username: user,
-        jump_password: pass,
-        jump_port: 22,
-        target_ip: targetIp,
+      const res = await openTunnelUrl({
+        host: ip,
+        username: user,
+        password: pass,
+        target: targetIp,
         target_port: 80,
       });
-      window.open(res.local_url || `http://127.0.0.1:${res.local_port}`, '_blank');
+      window.open(res.url || `http://${targetIp}`, '_blank');
     } catch (_) {
       window.open(`http://${targetIp}`, '_blank');
     }

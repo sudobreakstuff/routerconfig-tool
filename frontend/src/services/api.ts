@@ -1,8 +1,56 @@
 import axios from 'axios';
 
+// In the packaged Electron app the renderer runs from file:// and must talk to
+// the local backend over http://127.0.0.1:7933 with the instance bearer token,
+// both supplied through the preload bridge. In dev (Vite) we use the /api proxy
+// and bootstrap the token from the (public) settings endpoint.
+declare global {
+  interface Window {
+    routerConfig?: {
+      getApiToken: () => Promise<string>;
+      getApiBase: () => Promise<string>;
+    };
+  }
+}
+
+let authToken: string | null = null;
+
+async function resolveToken(): Promise<string> {
+  if (authToken !== null) return authToken;
+  if (window.routerConfig) {
+    authToken = await window.routerConfig.getApiToken();
+    return authToken || '';
+  }
+  let token = '';
+  try {
+    const { data } = await axios.get('/api/settings/app');
+    token = data.token || '';
+  } catch (_) {
+    token = '';
+  }
+  authToken = token;
+  return token;
+}
+
+async function resolveBaseURL(): Promise<string> {
+  if (window.routerConfig) {
+    return `${await window.routerConfig.getApiBase()}/api`;
+  }
+  return '/api';
+}
+
 const api = axios.create({
   baseURL: '/api',
   timeout: 60000,
+});
+
+api.interceptors.request.use(async (config) => {
+  config.baseURL = config.baseURL || (await resolveBaseURL());
+  const token = await resolveToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export default api;
@@ -44,6 +92,11 @@ export async function pingHost(ip: string) {
 
 export async function setupDevice(setupData: Record<string, unknown>) {
   const { data } = await api.post('/configs/setup', setupData);
+  return data;
+}
+
+export async function deployDevice(deployData: Record<string, unknown>) {
+  const { data } = await api.post('/configs/deploy', deployData);
   return data;
 }
 
@@ -172,18 +225,13 @@ export async function getAppSettings() {
   return data;
 }
 
-export async function openTunnel(tunnelData: Record<string, unknown>) {
-  const { data } = await api.post('/remote/open-tunnel', tunnelData);
-  return data;
-}
-
 export async function listTunnels() {
-  const { data } = await api.get('/remote/tunnels');
+  const { data } = await api.get('/actions/tunnels');
   return data;
 }
 
-export async function closeTunnel(localPort: number) {
-  const { data } = await api.delete(`/remote/tunnel/${localPort}`);
+export async function closeTunnel(tunnelId: number) {
+  const { data } = await api.delete(`/actions/tunnel/${tunnelId}`);
   return data;
 }
 
@@ -225,5 +273,10 @@ export async function checkTunnel(tunnelData: Record<string, unknown>) {
 
 export async function openTunnelUrl(tunnelData: Record<string, unknown>) {
   const { data } = await api.post('/actions/tunnel-open', tunnelData);
+  return data;
+}
+
+export async function fetchActiveTunnels() {
+  const { data } = await api.get('/actions/tunnels');
   return data;
 }

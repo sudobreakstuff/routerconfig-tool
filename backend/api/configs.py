@@ -1,14 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 import json
 import re as regex
 
 from database.connection import get_session
 from services.config_service import ConfigService
+from services.device_service import DeviceService
 from services.remote_service import RemoteService
 from core.connection_test import test_device_connection
 from core.drivers.base import RouterConnection
 from core.drivers.factory import DriverFactory
+from core.encryption import decrypt
+from models.isp_profile import ISPProfile
+from isp_adapters.registry import ISPAdapterRegistry
+from isp_adapters.base import DeviceUploadPayload
 
 router = APIRouter()
 
@@ -150,6 +156,95 @@ async def setup_bulk(
             }
             for r in results
         ],
+    }
+
+
+@router.post("/deploy")
+async def deploy_device(
+    data: dict,
+    session: AsyncSession = Depends(get_session),
+):
+    """End-to-end CPE deployment for the Jenny workflow:
+    read device -> apply config (setup) -> upload to ISP inventory.
+
+    Requires the config keys used by /setup plus an optional profile_id (or the
+    device's site must already be linked to an ISP profile).
+    """
+    device_id = data.get("device_id")
+
+    if device_id:
+        device = await DeviceService.get_by_id(session, device_id)
+        if not device:
+            raise HTTPException(status_code=404, detail="Device not found")
+        # Merge stored device credentials into the payload so setup can run.
+        base = {
+            "ip_address": device.ip_address or "",
+            "username": device.admin_username,
+            "password": decrypt(device.admin_password_encrypted) if device.admin_password_encrypted else "",
+            "brand": device.brand.value if device.brand else "generic",
+            "ssh_port": device.ssh_port or 22,
+            "web_port": device.web_port or 80,
+        }
+        data = {**base, **data}
+
+    setup_result = await ConfigService.setup_device(session, data)
+    setup_ok = setup_result.status.value == "success"
+
+    upload_result = None
+    if setup_ok:
+        profile_id = data.get("profile_id")
+        target_id = data.get("device_id")
+        profile = None
+        if profile_id:
+            res = await session.execute(select(ISPProfile).where(ISPProfile.id == profile_id))
+            profile = res.scalar_one_or_none()
+        if not profile and target_id:
+            dev = await DeviceService.get_by_id(session, target_id)
+            if dev and dev.site_id:
+                res = await session.execute(select(ISPProfile).where(ISPProfile.id == dev.site_id))
+                profile = res.scalar_one_or_none()
+        if profile:
+            try:
+                adapter = ISPAdapterRegistry.create(
+                    profile.adapter_name,
+                    api_base_url=profile.upload_endpoint or "",
+                    api_key=decrypt(profile.upload_api_key_encrypted) if profile.upload_api_key_encrypted else "",
+                )
+                if adapter:
+                    payload = DeviceUploadPayload(
+                        device_id=target_id or "",
+                        site_id=data.get("site_id"),
+                        mac_address=data.get("mac_address", ""),
+                        ip_address=data.get("ip_address", ""),
+                        brand=data.get("brand", "unknown"),
+                        model=data.get("model", "") or setup_result.router_info.model if setup_result.router_info else "",
+                        ssid=data.get("wifi_ssid", ""),
+                        admin_username=data.get("username", "admin"),
+                        firmware_version=setup_result.router_info.firmware_version if setup_result.router_info else "",
+                        custom_fields=data.get("custom_fields", {}),
+                    )
+                    upload_result = {"success": await adapter.upload_device_info(payload)}
+                else:
+                    upload_result = {"success": False, "error": "Unknown adapter"}
+            except Exception as e:
+                upload_result = {"success": False, "error": str(e)}
+
+    return {
+        "success": setup_ok,
+        "device_id": setup_result.task.device_id,
+        "setup": {
+            "success": setup_ok,
+            "errors": setup_result.errors,
+            "output_log": setup_result.output_log,
+            "duration_ms": setup_result.duration_ms,
+            "config_applied": setup_result.config_applied,
+            "router_info": {
+                "brand": setup_result.router_info.brand if setup_result.router_info else None,
+                "model": setup_result.router_info.model if setup_result.router_info else None,
+                "firmware": setup_result.router_info.firmware_version if setup_result.router_info else None,
+            },
+        },
+        "isp_upload": upload_result,
     }
 
 

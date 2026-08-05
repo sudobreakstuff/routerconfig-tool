@@ -36,7 +36,7 @@ export default function NetworkMap() {
     if (nodes.length <= 1) return;
 
     const g = svg.append('g');
-    svg.call(d3.zoom<SVGSVGElement,unknown>().scaleExtent([0.3,3]).on('zoom', e => g.attr('transform', e.transform)));
+    svg.call(d3.zoom<SVGSVGElement, unknown>().scaleExtent([0.3, 3]).on('zoom', (e) => g.attr('transform', e.transform)) as any);
 
     const sim = d3.forceSimulation(nodes)
       .force('link', d3.forceLink(links).id((d:any)=>d.id).distance(130))

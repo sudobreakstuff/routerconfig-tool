@@ -7,13 +7,14 @@ from services.device_service import DeviceService
 from services.remote_service import RemoteService
 from core.connection_pool import pool
 from core.discovery import ping_host
+from core.tunnel_manager import close_tunnel, list_tunnels, open_tunnel
 from core.drivers.factory import DriverFactory
 from core.drivers.base import RouterConnection
 
 router = APIRouter()
 
 AVAILABLE_ACTIONS = [
-    "reboot", "factory_reset", "backup_config", "get_connected_clients",
+    "reboot", "factory_reset", "backup_config", "restore_config", "firmware_upgrade", "get_connected_clients",
     "wifi_on", "wifi_off", "set_wifi", "set_admin_password", "set_dhcp", "run_command",
 ]
 
@@ -43,6 +44,46 @@ async def execute_action(data: dict, session: AsyncSession = Depends(get_session
     if action in ("reboot", "factory_reset") and result.get("success"):
         await DeviceService.update_online_status(session, device_id, False)
     return result
+
+
+@router.post("/execute/bulk")
+async def execute_bulk_action(data: dict, session: AsyncSession = Depends(get_session)):
+    """Run a single action across multiple devices concurrently."""
+    import asyncio
+
+    device_ids = data.get("device_ids", [])
+    action = data.get("action")
+    params = data.get("params", {})
+    max_concurrent = int(data.get("max_concurrent", 5))
+
+    if not device_ids or not action:
+        raise HTTPException(status_code=400, detail="device_ids and action are required")
+
+    results = []
+    for i in range(0, len(device_ids), max_concurrent):
+        batch = device_ids[i:i + max_concurrent]
+        pairs = []  # (device_id, task)
+        for device_id in batch:
+            device = await DeviceService.get_by_id(session, device_id)
+            if not device:
+                results.append({"device_id": device_id, "success": False, "error": "Device not found"})
+                continue
+            connection = await RemoteService.get_connection_profile(device)
+            pairs.append((device_id, ConfigService.run_action(device_id, connection, action, params)))
+
+        if not pairs:
+            continue
+
+        completed = await asyncio.gather(*[t for _, t in pairs], return_exceptions=True)
+        for (device_id, _), res in zip(pairs, completed):
+            if isinstance(res, Exception):
+                results.append({"device_id": device_id, "success": False, "error": str(res)})
+            else:
+                results.append({"device_id": device_id, **res})
+                if action in ("reboot", "factory_reset") and res.get("success"):
+                    await DeviceService.update_online_status(session, device_id, False)
+
+    return {"results": results, "count": len(results)}
 
 
 # -- Persistent SSH command execution (reuses connection pool) --
@@ -205,85 +246,33 @@ async def tunnel_check(data: dict):
 @router.post("/tunnel-open")
 async def tunnel_open(data: dict):
     """Open an SSH tunnel to a downstream device and return local URL."""
-    import random, socket, threading, select as _select
-
     host = data.get("host", "")
     username = data.get("username", "admin")
     password = data.get("password", "")
     target = data.get("target", "")
+    target_port = int(data.get("target_port", 80))
+    idle_timeout = int(data.get("idle_timeout", 120))
 
     if not host or not target:
         raise HTTPException(status_code=400, detail="host and target required")
 
-    # Get persistent SSH connection
     try:
-        ssh = pool.get(host, username, password, 22)
+        result = await open_tunnel(host, username, password, target, target_port, idle_timeout)
+        return result
     except Exception as e:
-        return {"error": f"Cannot connect: {e}"}
+        raise HTTPException(status_code=400, detail=str(e))
 
-    # Verify target is reachable first
-    try:
-        _s, _o, _e = ssh.exec_command(f"ping -c 1 -W 2 {target} 2>&1", timeout=5)
-        out = _o.read().decode()
-        if "bytes from" not in out.lower():
-            return {"error": f"Target {target} not reachable from CPE. Check routing."}
-    except Exception as e:
-        return {"error": str(e)}
 
-    # Allocate local port
-    local_port = random.randint(10000, 20000)
+@router.get("/tunnels")
+async def tunnels_list():
+    """List all currently open SSH tunnels."""
+    return {"tunnels": list_tunnels()}
 
-    def forward():
-        try:
-            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            server.bind(("127.0.0.1", local_port))
-            server.listen(1)
-            server.settimeout(30)
 
-            while True:
-                try:
-                    conn, _ = server.accept()
-                except socket.timeout:
-                    break
-                except Exception:
-                    break
-
-                try:
-                    chan = ssh.get_transport().open_channel("direct-tcpip", (target, 80), ("127.0.0.1", 0))
-                except Exception:
-                    try: conn.close()
-                    except: pass
-                    continue
-
-                def copy(a, b):
-                    try:
-                        while True:
-                            r, _, _ = _select.select([a, b], [], [], 5)
-                            if not r: continue
-                            for fd in r:
-                                try:
-                                    d = fd.recv(8192)
-                                    if not d: return
-                                    (b if fd is a else a).sendall(d)
-                                except Exception: return
-                    except Exception: pass
-                    finally:
-                        try: a.close()
-                        except: pass
-                        try: b.close()
-                        except: pass
-
-                threading.Thread(target=copy, args=(conn, chan), daemon=True).start()
-                threading.Thread(target=copy, args=(chan, conn), daemon=True).start()
-
-        except Exception:
-            pass
-        finally:
-            try: server.close()
-            except: pass
-
-    threading.Thread(target=forward, daemon=True).start()
-    import asyncio; await asyncio.sleep(0.5)
-
-    return {"url": f"http://127.0.0.1:{local_port}", "port": local_port}
+@router.delete("/tunnel/{tunnel_id}")
+async def tunnel_close(tunnel_id: int):
+    """Close an open SSH tunnel."""
+    ok = close_tunnel(tunnel_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Tunnel not found")
+    return {"closed": True, "id": tunnel_id}

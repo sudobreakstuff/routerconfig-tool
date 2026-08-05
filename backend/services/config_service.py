@@ -186,6 +186,10 @@ class ConfigService:
                 result = await driver.factory_reset()
             elif action == "backup_config":
                 result = await driver.backup_config()
+            elif action == "restore_config":
+                result = await driver.restore_config(params.get("config", {}) if isinstance(params.get("config"), dict) else {})
+            elif action == "firmware_upgrade":
+                result = await driver.firmware_upgrade(params.get("image_path", ""))
             elif action == "get_connected_clients":
                 result = await driver.get_connected_clients()
             elif action == "wifi_on":

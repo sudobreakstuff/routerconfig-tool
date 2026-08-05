@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import WinBoxLayout from './components/Layout';
 import Dashboard from './pages/Dashboard';
@@ -16,8 +16,8 @@ export default function App() {
     <>
       <Toaster position="bottom-right" />
       <Routes>
-        <Route element={<WinBoxLayout><Outlet /></WinBoxLayout>}>
-          <Route path="/" element={<Dashboard />} />
+        <Route element={<WinBoxLayout />}>
+          <Route index element={<Dashboard />} />
           <Route path="/devices" element={<Devices />} />
           <Route path="/setup" element={<SetupWizard />} />
           <Route path="/bulk" element={<BulkSetup />} />
@@ -32,5 +32,3 @@ export default function App() {
     </>
   );
 }
-
-import { Outlet } from 'react-router-dom';

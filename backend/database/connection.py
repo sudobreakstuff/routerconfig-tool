@@ -19,15 +19,7 @@ class Base(DeclarativeBase):
 
 
 async def init_db():
-    from models.device import Device
-    from models.site import Site
-    from models.baseline import Baseline
-    from models.config_template import ConfigTemplate
-    from models.job import ConfigJob, ConfigJobItem
-    from models.isp_profile import ISPProfile
-    from models.diagnostic_report import DiagnosticReport
-    from models.connection_profile import ConnectionProfile
-
+    import models  # noqa: F401  (registers all tables on Base.metadata)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
