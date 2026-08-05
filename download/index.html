@@ -191,11 +191,9 @@
     .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
     .then(function (rel) {
       var body = rel.body || "";
-      var m = body.match(/SHA-256[:\s]+([0-9a-fA-F]{64})/);
-      if (m) {
-        var sha = document.getElementById("dl-sha");
-        if (sha) sha.textContent = m[1].toUpperCase();
-      }
+      var sha = document.getElementById("dl-sha");
+      var m = body.match(/([0-9a-fA-F]{64})/);
+      if (sha) sha.textContent = m ? m[1].toUpperCase() : "No checksum in release notes.";
     })
     .catch(function () {
       var sha = document.getElementById("dl-sha");
