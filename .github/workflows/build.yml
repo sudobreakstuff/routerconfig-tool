@@ -1,0 +1,77 @@
+name: Build desktop installers
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Create backend venv + install deps
+        shell: bash
+        run: |
+          python -m venv backend/.venv
+          backend/.venv/bin/pip install -q -e backend pyinstaller
+
+      - name: Bundle backend (PyInstaller)
+        shell: bash
+        working-directory: backend
+        run: |
+          rm -rf build dist
+          .venv/bin/pyinstaller routerconfig-backend.spec --noconfirm --clean
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+
+      - name: Build Electron app
+        working-directory: frontend
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run electron:build
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            cp frontend/dist/*.AppImage frontend/dist/*.deb artifacts/ 2>/dev/null || true
+          else
+            cp frontend/dist/*.exe artifacts/ 2>/dev/null || true
+          fi
+          ls -la artifacts/
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: artifacts/**
+          generate_release_notes: true
