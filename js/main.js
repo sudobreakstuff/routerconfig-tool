@@ -1,4 +1,4 @@
-/* RouterConfig Pro site — hero network canvas, event ticker, mini-charts, counters, reveal. */
+/* RouterConfig Pro site — hero packet canvas, event ticker, mini-charts, counters, reveal. */
 
 (function () {
   "use strict";
@@ -6,12 +6,12 @@
   /* ------------------------------------------------------------ ticker */
   var TICKERS = [
     ["CPE-0417", "Ubiquiti", "config applied", "ok"],
-    ["CPE-1023", "MikroTik", "deployed to Jenny", "ok"],
+    ["CPE-1023", "MikroTik", "deployed to ISP", "ok"],
     ["CPE-0839", "TP-Link", "firmware upgrade", "ok"],
     ["CPE-0056", "Ubiquiti", "tunnel open", "ok"],
     ["CPE-0911", "MikroTik", "config applied", "ok"],
     ["CPE-0342", "Generic", "restore config", "err"],
-    ["CPE-0770", "TP-Link", "deployed to Jenny", "ok"],
+    ["CPE-0770", "TP-Link", "deployed to ISP", "ok"],
     ["CPE-1184", "Ubiquiti", "reboot sent", "ok"],
     ["CPE-0521", "MikroTik", "config diff OK", "ok"],
     ["CPE-0447", "Ubiquiti", "backup taken", "ok"],
@@ -20,7 +20,7 @@
   if (tickerEl) {
     var items = TICKERS.map(function (t) {
       var cls = t[3] === "ok" ? "ok" : "err";
-      return '<span class="t-item">' + t[0] + " · " + t[1] + ' <span class="' + cls + '">' + t[2] + "</span></span>";
+      return '<span class="t-item">' + t[0] + " · <span class=\"vendor\">" + t[1] + "</span> <span class=\"" + cls + "\">" + t[2] + "</span></span>";
     }).join("");
     tickerEl.innerHTML = items + items;
     tickerEl.style.animation = "marquee 48s linear infinite";
@@ -75,7 +75,7 @@
       for (var e = 0; e < edges.length; e++) {
         var ed = edges[e];
         var na = nodes[ed.a], nb = nodes[ed.b];
-        ctx.strokeStyle = "rgba(85,101,124,.28)";
+        ctx.strokeStyle = "rgba(92,106,125,.3)";
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y); ctx.stroke();
       }
@@ -88,15 +88,15 @@
         var a2 = nodes[ed2.a], b2 = nodes[ed2.b];
         var x = a2.x + (b2.x - a2.x) * pk.t;
         var y = a2.y + (b2.y - a2.y) * pk.t;
-        ctx.fillStyle = "#3ddbd1";
-        ctx.shadowColor = "#3ddbd1"; ctx.shadowBlur = 8;
+        ctx.fillStyle = "#46d160";
+        ctx.shadowColor = "#46d160"; ctx.shadowBlur = 8;
         ctx.beginPath(); ctx.arc(x, y, 2, 0, 6.28); ctx.fill();
         ctx.shadowBlur = 0;
       }
       for (var n = 0; n < nodes.length; n++) {
         var nd = nodes[n];
         var pulse = 0.5 + 0.5 * Math.sin(t * 3 + nd.phase);
-        ctx.fillStyle = nd.r > 4 ? "rgba(245,196,81,.95)" : "rgba(61,219,209,.7)";
+        ctx.fillStyle = nd.r > 4 ? "rgba(245,165,36,.95)" : "rgba(245,165,36,.55)";
         ctx.beginPath(); ctx.arc(nd.x, nd.y, nd.r + pulse * 1.6, 0, 6.28); ctx.fill();
       }
       requestAnimationFrame(draw);
@@ -117,11 +117,10 @@
     g.scale(2, 2);
 
     var n = 44, pts = [];
-    var base = 50;
     for (var i = 0; i < n; i++) {
       var v = 50;
       if (style === "flow") v = 50 + Math.sin(i / 4.2) * 16 + (Math.random() - 0.5) * 6;
-      else if (style === "deploy") v = base + Math.pow(i / n, 2) * 26 + Math.sin(i / 2.6) * 3;
+      else if (style === "deploy") v = 26 + Math.pow(i / n, 2) * 34 + Math.sin(i / 2.6) * 3;
       else if (style === "diag") v = 50 + (Math.random() < 0.18 ? -18 : (Math.random() - 0.5) * 10);
       else if (style === "bulk") v = 50 + Math.sin(i / 3.1) * 14 + (Math.random() - 0.5) * 8;
       else if (style === "tunnel") v = 50 + Math.cos(i / 1.9) * 12;
@@ -131,8 +130,8 @@
     var step = w / (n - 1);
     for (var k = 1; k < n; k++) {
       var up = pts[k] >= pts[k - 1];
-      g.strokeStyle = up ? "rgba(61,219,209,.8)" : "rgba(248,113,113,.8)";
-      g.fillStyle = up ? "rgba(61,219,209,.28)" : "rgba(248,113,113,.28)";
+      g.strokeStyle = up ? "rgba(245,165,36,.85)" : "rgba(240,90,90,.8)";
+      g.fillStyle = up ? "rgba(245,165,36,.25)" : "rgba(240,90,90,.22)";
       g.lineWidth = 1.6;
       g.beginPath();
       g.moveTo((k - 1) * step, h - pts[k - 1]);

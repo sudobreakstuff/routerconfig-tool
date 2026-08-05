@@ -4,25 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RouterConfig Pro — Download</title>
-<meta name="description" content="Download RouterConfig Pro for Linux: multi-vendor router auto-configuration, discovery, diagnostics, tunnels and one-click CPE deployment for ISP teams. Local-first, open source.">
+<meta name="description" content="Download RouterConfig Pro for Linux or Windows: multi-vendor router auto-configuration, discovery, diagnostics, tunnels and one-click device deployment for people who manage real networks.">
 <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
 <nav id="nav">
   <div class="nav-inner">
-    <a class="brand" href="../"><img src="../assets/logo.svg" alt=""><span>ROUTERCONFIG<span class="accent"> PRO</span></span></a>
+    <a class="brand" href="../"><img src="../assets/logo.svg" alt=""><span>ROUTERCONFIG<span class="accent">PRO</span></span></a>
     <div class="nav-links">
-      <a href="../#features">Features</a>
+      <a href="../#features">Capabilities</a>
       <a href="../#workflow">Workflow</a>
       <a href="../#compare">Compare</a>
       <a href="../#about">About</a>
       <a href="../download/">Download</a>
-      <a class="nav-cta" href="#get">Download</a>
+      <a class="nav-cta" href="#get">Get it</a>
     </div>
   </div>
 </nav>
@@ -30,8 +30,8 @@
 <div class="page-head">
   <div class="container">
     <h1>Download RouterConfig Pro</h1>
-    <p class="lead">A local-first desktop app for ISP router automation. Runs the backend on your own
-      machine, keeps credentials encrypted, and never phones home.</p>
+    <p class="lead">A local-first desktop app for multi-vendor router automation. Runs the backend on
+      your own machine, keeps credentials encrypted, and never phones home.</p>
   </div>
 </div>
 
@@ -39,27 +39,42 @@
   <div class="container">
     <div class="dl-card">
       <img class="dl-icon" src="../assets/logo.svg" alt="">
-      <div class="dl-title">RouterConfig Pro for Linux</div>
-      <div class="dl-sub">Ubuntu / Debian / Fedora &amp; other Linux · x64 · AppImage or DEB</div>
-      <div class="platform-links" id="dl-links">
-        <a class="btn primary dl-main" id="dl-appimage" href="#"
-           target="_blank" rel="noopener">Download AppImage</a>
-        <a class="btn ghost dl-main" id="dl-deb" href="#"
-           target="_blank" rel="noopener">Download DEB</a>
+      <div class="dl-title">RouterConfig Pro</div>
+      <div class="dl-sub">Choose your platform. Same tool, same features.</div>
+
+      <div class="platform-switch" id="platform-switch">
+        <button data-panel="linux" class="active">LINUX</button>
+        <button data-panel="windows">WINDOWS</button>
       </div>
-      <div class="dl-meta" id="dl-meta">Downloading the latest release…</div>
+
+      <div class="platform-panel active" id="panel-linux">
+        <div class="platform-links" id="dl-links-linux">
+          <a class="btn primary" id="dl-appimage" href="#" target="_blank" rel="noopener">Download AppImage</a>
+          <a class="btn ghost" id="dl-deb" href="#" target="_blank" rel="noopener">Download DEB</a>
+        </div>
+        <div class="dl-meta">Ubuntu / Debian / Fedora &amp; other Linux · x64</div>
+      </div>
+
+      <div class="platform-panel" id="panel-windows">
+        <div class="platform-links" id="dl-links-windows">
+          <a class="btn primary" id="dl-exe" href="#" target="_blank" rel="noopener">Download Windows installer</a>
+        </div>
+        <div class="dl-meta">Windows 10 / 11 · 64-bit · NSIS installer</div>
+      </div>
+
+      <div class="dl-meta" id="dl-meta">Resolving the latest release…</div>
       <details class="virtual-verify" id="dl-checksum">
         <summary>Verify download (SHA-256)</summary>
         <p class="mono sm" id="dl-sha">Loading…</p>
       </details>
       <div class="dl-rows" style="margin-top:18px;">
         <div class="dl-row"><span>Version</span><b id="dl-version">—</b></div>
-        <div class="dl-row"><span>Platform</span><b>Linux x64</b></div>
+        <div class="dl-row"><span>Platforms</span><b>Linux · Windows</b></div>
         <div class="dl-row"><span>License</span><b>Free &amp; open source (MIT)</b></div>
         <div class="dl-row"><span>Needs</span><b>Network access to your routers</b></div>
       </div>
     </div>
-    <p class="center-note">Windows and macOS builds are planned. Until then, the
+    <p class="center-note">macOS build is planned. Until then, the
       <a href="https://github.com/sudobreakstuff/routerconfig-tool">source</a> runs on any OS.</p>
   </div>
 </section>
@@ -71,7 +86,7 @@
       <div class="req-card">
         <div class="req-title">Minimum</div>
         <ul>
-          <li>Linux x64 (glibc 2.28+)</li>
+          <li>Windows 10 / 11 or Linux x64</li>
           <li>4&nbsp;GB RAM</li>
           <li>300&nbsp;MB free disk</li>
           <li>Any modern CPU</li>
@@ -81,7 +96,7 @@
         <div class="req-title">To manage routers</div>
         <ul>
           <li>SSH access to your routers <em>(or add them as generic devices)</em></li>
-          <li>RouterConfig can reach the network <em>— runs on your LAN or field laptop</em></li>
+          <li>Can reach the network <em>— runs on your LAN or field laptop</em></li>
           <li>Ubiquiti, MikroTik, TP-Link or any SSH box</li>
         </ul>
       </div>
@@ -90,7 +105,7 @@
         <ul>
           <li>No cloud account, ever</li>
           <li>No internet required to configure routers</li>
-          <li>No MetaTrader, no licenses, no sign-up</li>
+          <li>No sign-up, no license key, no telemetry</li>
         </ul>
       </div>
     </div>
@@ -103,14 +118,14 @@
     <div class="pair-flow">
       <div class="pf-step">
         <div class="pf-num">1</div>
-        <div class="pf-title">Download the package</div>
-        <p>Grab the AppImage or DEB above. Verify the SHA-256 checksum if you like.</p>
+        <div class="pf-title">Download</div>
+        <p>Grab the AppImage / DEB or Windows installer above. Verify the SHA-256 checksum if you like.</p>
       </div>
       <div class="pf-arrow">→</div>
       <div class="pf-step">
         <div class="pf-num">2</div>
-        <div class="pf-title">Run it</div>
-        <p><span class="mono">chmod +x RouterConfigPro*.AppImage &amp;&amp; ./RouterConfigPro*.AppImage</span>, or install the DEB with <span class="mono">sudo apt install ./RouterConfigPro*.deb</span>.</p>
+        <div class="pf-title">Install</div>
+        <p><span class="mono">chmod +x *.AppImage &amp;&amp; ./RouterConfigPro*.AppImage</span> · install the DEB with <span class="mono">apt install ./RouterConfigPro*.deb</span> · or run the Windows installer.</p>
       </div>
       <div class="pf-arrow">→</div>
       <div class="pf-step">
@@ -120,7 +135,7 @@
       </div>
     </div>
     <div class="ws-features">
-      <div class="wsf"><span class="wsf-icon">●</span><div><strong>Runs fully local</strong><p>Backend, database and credentials all live on your machine. No telemetry.</p></div></div>
+      <div class="wsf"><span class="wsf-icon">●</span><div><strong>Self-contained</strong><p>Python backend is bundled — no separate runtime to install.</p></div></div>
       <div class="wsf"><span class="wsf-icon">●</span><div><strong>Encrypted credentials</strong><p>Device passwords and ISP keys are Fernet-encrypted on disk.</p></div></div>
       <div class="wsf"><span class="wsf-icon">●</span><div><strong>Token-protected API</strong><p>A per-install token guards every request; CORS is locked to the app.</p></div></div>
       <div class="wsf"><span class="wsf-icon">●</span><div><strong>Extensible</strong><p>Add your own ISP uploader or device driver.</p></div></div>
@@ -141,17 +156,17 @@
           on your machine.</p></details>
       <details><summary>Is it safe to run?</summary>
         <p>It binds only to localhost, requires an API token on every request, and stores credentials
-          encrypted. Because it's unsigned on first release, Linux may warn you: allow the AppImage
-          or install the DEB, and verify the SHA-256 checksum published at release.</p></details>
+          encrypted. Because it's unsigned on first release, Windows SmartScreen / Linux may warn you:
+          allow it, and verify the SHA-256 checksum published at release.</p></details>
       <details><summary>Which routers work?</summary>
         <p>Ubiquiti (EdgeOS), MikroTik (RouterOS), TP-Link (LUCI/forms) and any generic SSH device.
           See the <a href="https://github.com/sudobreakstuff/routerconfig-tool">README</a> for the full vendor matrix.</p></details>
       <details><summary>How do updates work?</summary>
         <p>Download the new build from this page whenever you want. Your devices, configs and settings
           stay exactly where they are.</p></details>
-      <details><summary>Will Windows be available?</summary>
-        <p>Windows (NSIS) and macOS builds are planned. In the meantime the source runs anywhere
-          Python and a browser do.</p></details>
+      <details><summary>Will macOS be available?</summary>
+        <p>Planned. The Windows and Linux builds are built automatically from the repo on every
+          tagged release.</p></details>
     </div>
   </div>
 </section>
@@ -161,7 +176,7 @@
     <span><img src="../assets/logo.svg" alt=""> <strong>ROUTERCONFIG PRO</strong> — discover. configure. deploy.</span>
     <span>
       <a href="../download/">Download</a> ·
-      <a href="../#features">Features</a> ·
+      <a href="../#features">Capabilities</a> ·
       <a href="https://github.com/sudobreakstuff/routerconfig-tool">GitHub</a> ·
       <a href="../privacy/">Privacy</a> ·
       <a href="../terms/">Terms</a>
@@ -171,33 +186,70 @@
 
 <script>
 (function () {
-  var VERSION = "1.0.0";
-  var ASSETS = {
-    appimage: "RouterConfigPro-1.0.0-x86_64.AppImage",
-    deb: "RouterConfigPro-1.0.0-amd64.deb"
-  };
-  var RELEASE_URL = "https://github.com/sudobreakstuff/routerconfig-tool/releases/download/v" + VERSION + "/";
-  var appimage = document.getElementById("dl-appimage");
-  var deb = document.getElementById("dl-deb");
-  var meta = document.getElementById("dl-meta");
-  var ver = document.getElementById("dl-version");
-  if (appimage) appimage.href = RELEASE_URL + ASSETS.appimage;
-  if (deb) deb.href = RELEASE_URL + ASSETS.deb;
-  if (ver) ver.textContent = VERSION;
-  if (meta) meta.innerHTML = "Released as <span class='mono'>v" + VERSION + "</span>. Verify the SHA-256 below before running, then unzip / install and launch.";
+  var PANELS = { linux: "panel-linux", windows: "panel-windows" };
 
-  /* Resolve the live checksum from the GitHub release notes, if reachable. */
+  var btns = document.querySelectorAll("#platform-switch button");
+  btns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      btns.forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+      document.querySelectorAll(".platform-panel").forEach(function (p) { p.classList.remove("active"); });
+      document.getElementById(PANELS[b.dataset.panel]).classList.add("active");
+      document.getElementById("dl-sha").textContent = "Loading…";
+      applyRelease(window.__rcRelease);
+    });
+  });
+
+  var VERSION = "1.1.0";
+  var ASSETS = {
+    linux: {
+      appimage: "RouterConfigPro-1.1.0-x86_64.AppImage",
+      deb: "RouterConfigPro-1.1.0-amd64.deb"
+    },
+    windows: {
+      exe: "RouterConfigPro-1.1.0-win64-Setup.exe"
+    }
+  };
+  var BASE = "https://github.com/sudobreakstuff/routerconfig-tool/releases/download/v" + VERSION + "/";
+
+  function setChecksum(hash) {
+    var sha = document.getElementById("dl-sha");
+    if (sha) sha.textContent = hash ? hash.toUpperCase() : "No checksum in release notes.";
+  }
+
+  function applyRelease(rel) {
+    var ver = document.getElementById("dl-version");
+    if (rel && rel.tag_name) {
+      if (ver) ver.textContent = rel.tag_name.replace(/^v/, "");
+    }
+    var active = document.querySelector("#platform-switch button.active");
+    var panel = active ? active.dataset.panel : "linux";
+    var sha = document.getElementById("dl-sha");
+    if (!rel || !rel.body) return;
+
+    var body = rel.body || "";
+    if (sha) {
+      var m = body.match(new RegExp(ASSETS[panel] && ASSETS[panel].appimage || ASSETS[panel].exe, "i"));
+      if (!m) m = body.match(/([0-9a-fA-F]{64})/);
+      setChecksum(m ? m[0] : null);
+    }
+  }
+
+  document.getElementById("dl-appimage").href = BASE + ASSETS.linux.appimage;
+  document.getElementById("dl-deb").href = BASE + ASSETS.linux.deb;
+  document.getElementById("dl-exe").href = BASE + ASSETS.windows.exe;
+
+  var meta = document.getElementById("dl-meta");
+  meta.innerHTML = "Released as <span class='mono'>v" + VERSION + "</span>. Verify the SHA-256 below before running.";
+
   fetch("https://api.github.com/repos/sudobreakstuff/routerconfig-tool/releases/latest")
     .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
     .then(function (rel) {
-      var body = rel.body || "";
-      var sha = document.getElementById("dl-sha");
-      var m = body.match(/([0-9a-fA-F]{64})/);
-      if (sha) sha.textContent = m ? m[1].toUpperCase() : "No checksum in release notes.";
+      window.__rcRelease = rel;
+      applyRelease(rel);
     })
     .catch(function () {
-      var sha = document.getElementById("dl-sha");
-      if (sha) sha.textContent = "Check the release notes on GitHub.";
+      setChecksum(null);
     });
 
   var io = new IntersectionObserver(function (es) {
