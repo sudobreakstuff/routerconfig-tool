@@ -7,8 +7,6 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.32.0",
     "sqlalchemy>=2.0.35",
-    "alembic>=1.13.0",
-    "netmiko>=4.4.0",
     "paramiko>=3.5.0",
     "httpx>=0.28.0",
     "jinja2>=3.1.4",
@@ -16,16 +14,13 @@ dependencies = [
     "pydantic>=2.9.0",
     "pydantic-settings>=2.6.0",
     "python-multipart>=0.0.17",
-    "asyncpg>=0.30.0",
     "aiosqlite>=0.20.0",
-    "nmap>=0.0.7",
-    "python-nmap>=0.7.1",
-    "scapy>=2.6.0",
     "rich>=13.9.0",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "alembic>=1.13.0",
     "pytest>=8.3.0",
     "pytest-asyncio>=0.24.0",
     "black>=24.10.0",
@@ -36,3 +31,8 @@ dev = [
 [build-system]
 requires = ["setuptools>=75.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["api*", "core*", "services*", "database*", "models*", "isp_adapters*"]
+exclude = ["alembic*", "tests*"]

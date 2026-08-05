@@ -115,23 +115,26 @@
 <section class="section" id="install">
   <div class="container narrow">
     <h2>Install in three steps</h2>
-    <div class="pair-flow">
-      <div class="pf-step">
-        <div class="pf-num">1</div>
-        <div class="pf-title">Download</div>
-        <p>Grab the AppImage / DEB or Windows installer above. Verify the SHA-256 checksum if you like.</p>
+    <div class="loop">
+      <div class="loop-idx">01 / download</div>
+      <div class="loop-step">
+        <div class="loop-cmd">get <span class="in">RouterConfigPro-1.1.0</span></div>
+        <p class="loop-desc">Grab the AppImage / DEB or Windows installer above. Verify the SHA-256 checksum if you like.</p>
+        <div class="loop-out">asset verified</div>
       </div>
-      <div class="pf-arrow">→</div>
-      <div class="pf-step">
-        <div class="pf-num">2</div>
-        <div class="pf-title">Install</div>
-        <p><span class="mono">chmod +x *.AppImage &amp;&amp; ./RouterConfigPro*.AppImage</span> · install the DEB with <span class="mono">apt install ./RouterConfigPro*.deb</span> · or run the Windows installer.</p>
+
+      <div class="loop-idx">02 / install</div>
+      <div class="loop-step">
+        <div class="loop-cmd">install <span class="in">./RouterConfigPro-1.1.0</span></div>
+        <p class="loop-desc"><span class="mono">chmod +x *.AppImage &amp;&amp; ./RouterConfigPro*.AppImage</span> · install the DEB with <span class="mono">apt install ./RouterConfigPro*.deb</span> · or run the Windows installer.</p>
+        <div class="loop-out">app ready</div>
       </div>
-      <div class="pf-arrow">→</div>
-      <div class="pf-step">
-        <div class="pf-num">3</div>
-        <div class="pf-title">Add your routers</div>
-        <p>The app starts its local backend, generates an API token, and you're ready to discover and configure devices.</p>
+
+      <div class="loop-idx">03 / connect</div>
+      <div class="loop-step">
+        <div class="loop-cmd">connect <span class="in">--first-run</span></div>
+        <p class="loop-desc">The app starts its local backend, generates an API token, and you're ready to discover and configure devices.</p>
+        <div class="loop-out">token ready · backend up</div>
       </div>
     </div>
     <div class="ws-features">
@@ -255,7 +258,7 @@
   var io = new IntersectionObserver(function (es) {
     es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
   }, { threshold: 0.1 });
-  document.querySelectorAll(".dl-card, .req-card, .pf-step, .wsf, .faq details").forEach(function (el) { el.classList.add("reveal"); io.observe(el); });
+  document.querySelectorAll(".dl-card, .req-card, .loop-step, .wsf, .faq details").forEach(function (el) { el.classList.add("reveal"); io.observe(el); });
 })();
 </script>
 </body>
