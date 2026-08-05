@@ -3,26 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RouterConfig Pro — Multi-vendor router automation for ISP deployments</title>
-<meta name="description" content="Discover, configure, diagnose and tunnel into Ubiquiti, MikroTik, TP-Link and generic routers over SSH — with the Jenny Internet CPE workflow built in. Local-first desktop app for ISP field and NOC teams.">
+<title>RouterConfig Pro — Multi-vendor router automation</title>
+<meta name="description" content="Discover, configure, diagnose and tunnel into Ubiquiti, MikroTik, TP-Link and generic routers over SSH. A local-first desktop tool for anyone who manages real networks.">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <nav id="nav">
   <div class="nav-inner">
-    <a class="brand" href="#top"><img src="assets/logo.svg" alt=""><span>ROUTERCONFIG<span class="accent"> PRO</span></span></a>
+    <a class="brand" href="#top"><img src="assets/logo.svg" alt=""><span>ROUTERCONFIG<span class="accent">PRO</span></span></a>
     <div class="nav-links">
-      <a href="#features">Features</a>
+      <a href="#features">Capabilities</a>
       <a href="#workflow">Workflow</a>
       <a href="#compare">Compare</a>
       <a href="#about">About</a>
       <a href="download/">Download</a>
-      <a class="nav-cta" href="download/">Get the app</a>
+      <a class="nav-cta" href="download/">Get it</a>
     </div>
   </div>
 </nav>
@@ -31,20 +31,19 @@
   <canvas id="hero-canvas"></canvas>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <div class="hero-badge"><span class="dot"></span> v1.0.0 · local-first desktop app</div>
-    <h1>Provision your whole network.<br><span class="accent">From one screen.</span></h1>
-    <p class="hero-sub">RouterConfig Pro automates multi-vendor router setup for ISP deployments.
-      Discover what's on the network, apply vendor-correct configs to Ubiquiti, MikroTik and TP-Link
-      devices, diagnose problems, and tunnel straight into any downstream router — all over SSH.</p>
+    <div class="hero-badge"><span class="dot"></span> v1.1.0 · linux + windows · local-first</div>
+    <h1>Stop pasting CLI.<br><span class="accent">Start provisioning.</span></h1>
+    <p class="hero-sub">RouterConfig Pro discovers, configures, diagnoses and tunnels into
+      Ubiquiti, MikroTik, TP-Link and generic routers over SSH — one tool for the whole fleet,
+      on your own machine.</p>
     <div class="hero-cta">
       <a class="btn primary" href="download/">Download for Linux</a>
-      <a class="btn ghost" href="#features">See what it does</a>
-      <a class="btn ghost" href="#workflow">How it works</a>
+      <a class="btn ghost" href="download/#windows">Download for Windows</a>
     </div>
     <div class="hero-metrics">
-      <div class="hm"><span class="hmv" data-count="4">0</span><span class="hmk">router vendors supported</span></div>
-      <div class="hm"><span class="hmv" data-count="11">0</span><span class="hmk">device actions built in</span></div>
-      <div class="hm"><span class="hmv" data-count="0" data-suffix="%">0</span><span class="hmk">cloud required</span></div>
+      <div class="hm"><span class="hmv" data-count="4">0</span><span class="hmk">vendors supported</span></div>
+      <div class="hm"><span class="hmv" data-count="11">0</span><span class="hmk">device actions</span></div>
+      <div class="hm"><span class="hmv" data-count="100" data-suffix="%">0</span><span class="hmk">local &amp; offline</span></div>
     </div>
   </div>
   <div class="ticker">
@@ -54,132 +53,127 @@
 
 <section class="section" id="what">
   <div class="container narrow">
-    <h2>What is RouterConfig Pro?</h2>
-    <p>It's the tool for the person who has to make 40 customer routers behave. You point it at a
-      network, it discovers the gear, and it walks the right config onto every device using that
-      vendor's own SSH interface — EdgeOS files for Ubiquiti, CLI commands for MikroTik, LUCI/forms
-      for TP-Link. No copy-pasting blocks of CLI from a notes app, no guessing which template fits
-      which router.</p>
-    <p>Built around the <strong>Jenny Internet CPE workflow</strong>: a new customer router gets
-      auto-configured, verified, and pushed to the ISP inventory in a single <strong>Deploy</strong>
-      action. Field technicians get a live terminal and direct tunnels into downstream devices;
-      the NOC gets bulk operations and health checks across the fleet.</p>
-    <p>Everything runs on your machine. Device credentials are stored <strong>encrypted</strong>,
-      the API is protected by a per-install token, and nothing leaves your network unless you push
-      it to the ISP inventory yourself.</p>
+    <span class="section-kicker">The problem</span>
+    <h2>Every router speaks a <span class="accent">different language</span></h2>
+    <p>Ubiquiti wants files dropped into <span class="mono">/config</span>. MikroTik wants CLI
+      commands one at a time. TP-Link hides everything behind its web forms. So the person who
+      manages the network ends up keeping a notes app full of half-remembered incantations.</p>
+    <p>RouterConfig Pro speaks all three. You describe what the network <em>should</em> be, and it
+      applies the vendor-correct changes over that device's own SSH interface — with a real
+      terminal underneath, so nothing is ever out of reach.</p>
   </div>
 </section>
 
 <section class="section alt" id="why">
   <div class="container narrow">
-    <h2>Why I built it</h2>
-    <p>Because configuring routers for a real ISP means fighting four different vendors' quirks every
-      single day. One template fits Ubiquiti but not MikroTik; one wrong CLI line bricks a customer
-      session; and the person in the field has to phone the office to run a command they can't reach.
-      I wanted the whole workflow — discover, configure, deploy, diagnose, tunnel — in one honest,
-      local-first tool that knows each vendor's language.</p>
-    <p>RouterConfig Pro is a serious tool, not a script collection. It keeps your data encrypted and
-      local, gives you a real terminal into any device, and automates the boring parts so you can do
-      the work in minutes instead of an afternoon.</p>
+    <span class="section-kicker">Why it exists</span>
+    <h2>Built by someone who <span class="accent">runs the gear</span></h2>
+    <p>I got tired of four browsers open, four different config formats, and one wrong line taking
+      down a customer. So I built a tool that treats the whole fleet as one system: discover what's
+      there, configure it correctly, deploy it, and if something breaks — tunnel straight in and fix
+      it by hand.</p>
+    <p>It's a serious tool for people who manage real networks. Data stays on your machine,
+      credentials are stored encrypted, and there's no cloud account to argue with.</p>
     <p class="signature">— Shahid</p>
   </div>
 </section>
 
 <section class="section" id="features">
   <div class="container">
-    <h2>What can you do with it?</h2>
-    <p class="lead">Real ISP workflows, backed by real SSH sessions. These are the built-in
-      capabilities — every one of them runs against actual devices.</p>
+    <span class="section-kicker">Capabilities</span>
+    <h2>What it does, out of the box</h2>
+    <p class="lead">Real workflows against real devices — every one of these talks to actual
+      hardware over SSH.</p>
 
     <div class="use-grid">
 
       <article class="use-card">
         <div class="mini-chart" data-style="topo"></div>
-        <h3>Network Discovery</h3>
-        <p class="use-tip"><strong>See everything:</strong> scan the subnet with ARP, DHCP and vendor
-          probes, resolve the maker from the MAC, and map how routers hang off each other downstream.</p>
+        <h3>Discovery</h3>
+        <p class="use-tip"><strong>See the network:</strong> scan with ARP, DHCP and vendor probes,
+          resolve the maker from the MAC address, and map how routers hang off each other downstream.</p>
         <div class="chips"><span>ARP Scan</span><span>OUI Lookup</span><span>Downstream Map</span></div>
       </article>
 
       <article class="use-card">
         <div class="mini-chart" data-style="flow"></div>
-        <h3>Auto-Configuration</h3>
-        <p class="use-tip"><strong>Vendor-correct configs:</strong> one template, applied through each
-          device's native interface — EdgeOS files, MikroTik CLI, TP-Link LUCI. Set Wi-Fi, DHCP,
-          admin password and aliases automatically.</p>
+        <h3>Auto-config</h3>
+        <p class="use-tip"><strong>One template, any vendor:</strong> apply Wi-Fi, DHCP, admin
+          password and aliases through each device's native interface — EdgeOS files, RouterOS CLI,
+          TP-Link forms.</p>
         <div class="chips"><span>Ubiquiti</span><span>MikroTik</span><span>TP-Link</span></div>
       </article>
 
       <article class="use-card">
         <div class="mini-chart" data-style="deploy"></div>
-        <h3>One-click CPE Deploy</h3>
-        <p class="use-tip"><strong>Jenny workflow:</strong> configure the router <em>and</em> upload it
-          to the ISP inventory in a single action. New customer, done — not a multi-step ritual.</p>
+        <h3>One-click deploy</h3>
+        <p class="use-tip"><strong>Configure and verify</strong> in a single action, then push the
+          device to your ISP inventory. New customer, done.</p>
         <div class="chips"><span>Configure</span><span>Verify</span><span>ISP Upload</span></div>
       </article>
 
       <article class="use-card">
         <div class="mini-chart" data-style="diag"></div>
         <h3>Diagnostics</h3>
-        <p class="use-tip"><strong>Know what's wrong:</strong> run health checks, baseline config
-          diffs, and per-vendor diagnostics to find the failing link instead of guessing.</p>
+        <p class="use-tip"><strong>Stop guessing:</strong> health checks and config diffs show which
+          link is failing instead of sending someone out to look.</p>
         <div class="chips"><span>Health Checks</span><span>Config Diff</span><span>Per-vendor</span></div>
       </article>
 
       <article class="use-card">
         <div class="mini-chart" data-style="tunnel"></div>
-        <h3>Live SSH Tunnels</h3>
-        <p class="use-tip"><strong>Reach anything:</strong> open a temporary tunnel to any downstream
-          device and drive it with a real terminal — or hand the exact session to a field tech.</p>
+        <h3>Live tunnels</h3>
+        <p class="use-tip"><strong>Reach anything:</strong> open a temporary SSH tunnel to any
+          downstream device and drive it with a real terminal — or hand the session to a field tech.</p>
         <div class="chips"><span>xterm.js</span><span>Downstream</span><span>Idle Timeout</span></div>
       </article>
 
       <article class="use-card">
         <div class="mini-chart" data-style="bulk"></div>
-        <h3>Bulk Operations</h3>
+        <h3>Bulk ops</h3>
         <p class="use-tip"><strong>Fleet-wide fixes:</strong> reboot, factory reset, restore config,
-          upgrade firmware or push a setting to many devices at once, with progress tracked per unit.</p>
+          or upgrade firmware across many devices at once, with progress tracked per unit.</p>
         <div class="chips"><span>Concurrent</span><span>Firmware</span><span>Restore</span></div>
       </article>
 
     </div>
-    <p class="center-note">And the raw power is always there: a full SSH terminal into any device,
+    <p class="center-note">Raw power is always one click away: a full SSH terminal into any device,
       plus <em>backup / restore config</em> and <em>firmware upgrade</em> where the vendor allows it.</p>
   </div>
 </section>
 
 <section class="section alt" id="workflow">
   <div class="container">
-    <h2>The Deploy CPE flow — start to finish</h2>
-    <p class="lead">This is the core daily loop for an installer. One button, no phone calls, no
-      clipboard CLI.</p>
+    <span class="section-kicker">Daily loop</span>
+    <h2>New device, three steps, <span class="accent">no phone calls</span></h2>
+    <p class="lead">This is the core loop for an installer or a NOC tech.</p>
 
     <div class="pair-flow">
       <div class="pf-step">
         <div class="pf-num">1</div>
         <div class="pf-title">Discover</div>
-        <p>Scan the network and pick the customer router out of the device list.</p>
+        <p>Scan the network and pick the device out of the list.</p>
       </div>
       <div class="pf-arrow">→</div>
       <div class="pf-step">
         <div class="pf-num">2</div>
         <div class="pf-title">Configure</div>
-        <p>RouterConfig applies the vendor-correct config — Wi-Fi, DHCP, passwords, aliases.</p>
+        <p>Vendor-correct config applied — Wi-Fi, DHCP, passwords, aliases.</p>
       </div>
       <div class="pf-arrow">→</div>
       <div class="pf-step">
         <div class="pf-num">3</div>
         <div class="pf-title">Deploy</div>
-        <p>Verified config is pushed to the ISP inventory automatically. Customer is live.</p>
+        <p>Verified and pushed to the ISP inventory. Customer is live.</p>
       </div>
     </div>
 
     <div class="ws-features">
-      <div class="wsf"><span class="wsf-icon">●</span><div><strong>Encrypted storage</strong><p>Device credentials and ISP keys are Fernet-encrypted on disk — never plaintext.</p></div></div>
-      <div class="wsf"><span class="wsf-icon">●</span><div><strong>Token-protected API</strong><p>Every request needs the per-install token; CORS is locked to the local app.</p></div></div>
+      <div class="wsf"><span class="wsf-icon">●</span><div><strong>Encrypted storage</strong><p>Device credentials and ISP keys are Fernet-encrypted on disk.</p></div></div>
+      <div class="wsf"><span class="wsf-icon">●</span><div><strong>Token-protected API</strong><p>Every request needs the per-install token; CORS is locked to the app.</p></div></div>
       <div class="wsf"><span class="wsf-icon">●</span><div><strong>Real terminal</strong><p>SSH into any device, downstream included, right from the app.</p></div></div>
       <div class="wsf"><span class="wsf-icon">●</span><div><strong>Bulk first</strong><p>Reboot, reset, restore or configure whole groups in parallel.</p></div></div>
-      <div class="wsf"><span class="wsf-icon">●</span><div><strong>ISP adapters</strong><p>Jenny Internet and custom inventory uploaders — plug in your stack.</p></div></div>
+      <div class="wsf"><span class="wsf-icon">●</span><div><strong>Bring your own adapter</strong><p>Add a custom ISP uploader or device driver — it's designed to be extended.</p></div></div>
     </div>
 
     <div class="center">
@@ -190,8 +184,9 @@
 
 <section class="section" id="compare">
   <div class="container narrow">
-    <h2>Compare</h2>
-    <p class="lead">How RouterConfig Pro stacks up against the old way of doing ISP installs.</p>
+    <span class="section-kicker">Compare</span>
+    <h2>How it stacks up</h2>
+    <p class="lead">Against the way most networks actually get managed.</p>
     <div class="table-wrap">
       <table class="cmp">
         <thead>
@@ -200,7 +195,7 @@
         <tbody>
           <tr><td>Vendor coverage</td><td class="col-axm">Ubiquiti · MikroTik · TP-Link · generic</td><td>Whatever you paste</td><td>One vendor each</td></tr>
           <tr><td>Config apply</td><td class="col-axm">Vendor-native, template-driven</td><td>Manual copy-paste</td><td>Click every field</td></tr>
-          <tr><td>New CPE deploy</td><td class="col-axm">One click + ISP upload</td><td>Multi-step ritual</td><td>Not supported</td></tr>
+          <tr><td>New device deploy</td><td class="col-axm">One click + ISP upload</td><td>Multi-step ritual</td><td>Not supported</td></tr>
           <tr><td>Downstream tunnels</td><td class="col-axm">Built-in, with terminal</td><td>Manual SSH hop</td><td>No</td></tr>
           <tr><td>Bulk actions</td><td class="col-axm">Concurrent, tracked</td><td>Script it yourself</td><td>No</td></tr>
           <tr><td>Credential storage</td><td class="col-axm">Encrypted, local</td><td>Spreadsheet</td><td>Per-device UI</td></tr>
@@ -216,7 +211,7 @@
     <div class="about-cols">
       <div>
         <h3>The Mission</h3>
-        <p>ISP work shouldn't be a wall of copied CLI. Anyone deploying real networks deserves
+        <p>Network work shouldn't be a wall of copied CLI. Anyone running real hardware deserves
           software that knows each vendor's language and does the boring parts automatically.</p>
       </div>
       <div>
@@ -226,17 +221,17 @@
       </div>
       <div>
         <h3>Local-first</h3>
-        <p>The whole backend runs on your own computer. There's no cloud to trust, no monthly
-          bill, no account to create — just install and work.</p>
+        <p>The whole backend runs on your own computer. No cloud to trust, no account to create,
+          no monthly bill — install and work.</p>
       </div>
       <div>
         <h3>Your Stack</h3>
-        <p>Add your own ISP upload adapter or device driver. RouterConfig Pro is designed to be
+        <p>Add your own ISP upload adapter or device driver. RouterConfig Pro is built to be
           extended for whatever network you run.</p>
       </div>
     </div>
     <div class="about-footer">
-      <a href="#features">Features</a>
+      <a href="#features">Capabilities</a>
       <a href="#workflow">Workflow</a>
       <a href="download/">Download</a>
       <a href="https://github.com/sudobreakstuff/routerconfig-tool/issues">Report Issue</a>
@@ -251,7 +246,7 @@
     <span><img src="assets/logo.svg" alt=""> <strong>ROUTERCONFIG PRO</strong> — discover. configure. deploy.</span>
     <span>
       <a href="download/">Download</a> ·
-      <a href="#features">Features</a> ·
+      <a href="#features">Capabilities</a> ·
       <a href="https://github.com/sudobreakstuff/routerconfig-tool">GitHub</a> ·
       <a href="privacy/">Privacy</a> ·
       <a href="terms/">Terms</a>

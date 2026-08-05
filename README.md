@@ -31,10 +31,15 @@ Dev URL: `http://localhost:5173` · Backend: `http://127.0.0.1:7933` (bind to lo
 ## Desktop app (production)
 
 ```bash
-cd frontend
-npm run electron:dev      # run the Electron shell against the Vite dev server
-npm run electron:build    # tsc && vite build && electron-builder (AppImage/deb/nsis)
+./scripts/build.sh                 # bundles backend (PyInstaller) + builds Electron app
 ```
+
+- Bundles the Python backend into a self-contained binary (no system Python needed),
+  then packages the Electron shell. Output: `frontend/dist/`.
+- Linux: `RouterConfigPro-<ver>-x86_64.AppImage` + `RouterConfigPro-<ver>-amd64.deb`
+- Windows: `RouterConfigPro-<ver>-win64-Setup.exe`
+- CI: pushing a `v*` tag runs `.github/workflows/build.yml` on native Linux + Windows
+  runners and attaches both sets of installers to the GitHub release.
 
 In the packaged app the renderer runs from `file://`, so it talks to the backend at
 `http://127.0.0.1:7933` directly. The instance API token is delivered through the

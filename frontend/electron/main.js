@@ -7,10 +7,27 @@ let mainWindow;
 let pythonProcess;
 
 function startPythonBackend() {
-  const pythonPath = process.platform === 'win32' ? 'python' : 'python3';
-  const backendPath = path.join(__dirname, '..', '..', 'backend', 'main.py');
+  // Packaged: spawn the bundled backend binary (no system Python needed).
+  // Dev: fall back to `python3 backend/main.py`.
+  const isPackaged = app.isPackaged;
+  const exeName = process.platform === 'win32' ? 'routerconfig-backend.exe' : 'routerconfig-backend';
+  const backendPath = isPackaged
+    ? path.join(process.resourcesPath, 'backend', exeName)
+    : path.join(__dirname, '..', '..', 'backend', 'main.py');
 
-  pythonProcess = spawn(pythonPath, [backendPath], {
+  let args;
+  if (isPackaged) {
+    args = [];
+  } else {
+    const pythonPath = process.platform === 'win32' ? 'python' : 'python3';
+    pythonProcess = spawn(pythonPath, [backendPath], {
+      env: { ...process.env, RC_DATA_DIR: app.getPath('userData') },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return;
+  }
+
+  pythonProcess = spawn(backendPath, args, {
     env: { ...process.env, RC_DATA_DIR: app.getPath('userData') },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
