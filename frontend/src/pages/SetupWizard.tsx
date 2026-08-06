@@ -56,7 +56,7 @@ export default function SetupWizard() {
       } else {
         setTestResult(tr);
       }
-    } catch (_) { setTestResult({ error: 'Connection failed', reachable: false }); }
+    } catch (e: any) { setTestResult({ error: e?.response?.data?.detail || e?.message || 'Connection failed', reachable: false }); }
     setTesting(false);
   };
 

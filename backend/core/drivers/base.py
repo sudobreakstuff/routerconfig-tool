@@ -235,8 +235,13 @@ class RouterDriver(ABC):
 
     async def ping_target(self, target: str, count: int = 4) -> ActionResult:
         try:
+            import platform
+            if platform.system() == "Windows":
+                cmd = ["ping", "-n", "1", "-w", "3000", target]
+            else:
+                cmd = ["ping", "-c", "1", "-W", "2", target]
             proc = await asyncio.create_subprocess_exec(
-                "ping", "-c", str(count), "-W", "2", target,
+                *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

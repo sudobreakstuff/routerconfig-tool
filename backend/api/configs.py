@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import json
 import re as regex
+import asyncio
 
 from database.connection import get_session
 from services.config_service import ConfigService
@@ -275,13 +276,27 @@ async def test_connection(
     ssh_port = data.get("ssh_port", 22)
     web_port = data.get("web_port", 80)
 
-    result = await test_device_connection(
-        ip=ip,
-        username=username,
-        password=password,
-        ssh_port=ssh_port,
-        web_port=web_port,
-    )
+    try:
+        result = await asyncio.wait_for(
+            test_device_connection(
+                ip=ip,
+                username=username,
+                password=password,
+                ssh_port=ssh_port,
+                web_port=web_port,
+            ),
+            timeout=30,
+        )
+    except Exception as e:
+        return {
+            "success": False,
+            "reachable": False,
+            "auth": False,
+            "brand": "unknown",
+            "model": "",
+            "ports": [],
+            "error": f"{type(e).__name__}: {e}",
+        }
     return {
         "success": result["auth"] and result["reachable"],
         "reachable": result["reachable"],
