@@ -65,6 +65,9 @@
         "to": "backend"
       }
     ],
+    "deb": {
+      "afterInstall": "scripts/after-install.sh"
+    },
     "files": [
       "dist/renderer/**",
       "electron/**",
