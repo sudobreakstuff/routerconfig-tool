@@ -5,7 +5,6 @@ import Dashboard from './pages/Dashboard';
 import Devices from './pages/Devices';
 import SetupWizard from './pages/SetupWizard';
 import BulkSetup from './pages/BulkSetup';
-import NetworkMap from './pages/NetworkMap';
 import Diagnostics from './pages/Diagnostics';
 import RemoteAccess from './pages/RemoteAccess';
 import Templates from './pages/Templates';
@@ -21,12 +20,12 @@ export default function App() {
           <Route path="/devices" element={<Devices />} />
           <Route path="/setup" element={<SetupWizard />} />
           <Route path="/bulk" element={<BulkSetup />} />
-          <Route path="/network-map" element={<NetworkMap />} />
           <Route path="/diagnostics" element={<Diagnostics />} />
           <Route path="/remote/:deviceId?" element={<RemoteAccess />} />
           <Route path="/remote" element={<RemoteAccess />} />
           <Route path="/templates" element={<Templates />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="*" element={<Dashboard />} />
         </Route>
       </Routes>
     </>
