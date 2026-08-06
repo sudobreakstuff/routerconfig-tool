@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 
+app.disableHardwareAcceleration();
+
 let mainWindow;
 let pythonProcess;
 
