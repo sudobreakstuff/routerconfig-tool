@@ -137,8 +137,14 @@ async def ping_host(ip: str, timeout: int = 3) -> bool:
         cmd = ["ping", "-n", "1", "-w", str(timeout * 1000), ip]
     else:
         cmd = ["ping", "-c", "1", "-W", str(timeout), ip]
-    output = await _run_command(cmd, timeout + 3)
-    return "1 received" in output or " 0%" in output or "TTL=" in output
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,
+        )
+        code = await asyncio.wait_for(proc.wait(), timeout=timeout + 3)
+        return code == 0
+    except Exception:
+        return False
 
 
 def _get_local_ips() -> set[str]:

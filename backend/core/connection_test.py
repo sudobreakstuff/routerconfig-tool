@@ -15,15 +15,19 @@ async def test_device_connection(ip: str, username: str = "admin", password: str
     """Test if a device is reachable and accessible."""
     result = {"reachable": False, "auth": False, "brand": "unknown", "model": "", "ports": []}
 
-    # Ping
-    reachable = await ping_host(ip)
-    result["reachable"] = reachable
-    if not reachable:
-        return result
+    # Ping is a soft signal - many routers block ICMP while serving HTTP/SSH.
+    ping_ok = await ping_host(ip)
+    result["reachable"] = ping_ok
 
-    # Port scan
+    # Port scan is the authoritative reachability check (TCP-based, works even
+    # when ICMP is blocked).
     ports = await _probe_ports(ip)
     result["ports"] = ports
+    if not result["reachable"]:
+        result["reachable"] = bool(ports)
+
+    if not result["reachable"]:
+        return result
 
     # Try HTTP first - more routers have web admin than SSH
     if 80 in ports or 443 in ports:
