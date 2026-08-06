@@ -45,7 +45,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-  config.baseURL = config.baseURL || (await resolveBaseURL());
+  config.baseURL = await resolveBaseURL();
   const token = await resolveToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
