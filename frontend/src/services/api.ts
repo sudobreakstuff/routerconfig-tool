@@ -16,19 +16,21 @@ declare global {
 let authToken: string | null = null;
 
 async function resolveToken(): Promise<string> {
-  if (authToken !== null) return authToken;
-  if (window.routerConfig) {
-    authToken = await window.routerConfig.getApiToken();
-    return authToken || '';
-  }
+  if (authToken) return authToken;
   let token = '';
-  try {
-    const { data } = await axios.get('/api/settings/app');
-    token = data.token || '';
-  } catch (_) {
-    token = '';
+  if (window.routerConfig) {
+    token = (await window.routerConfig.getApiToken()) || '';
   }
-  authToken = token;
+  if (!token) {
+    try {
+      const base = await resolveBaseURL();
+      const { data } = await axios.get(`${base}/settings/app`);
+      token = data.token || '';
+    } catch (_) {
+      token = '';
+    }
+  }
+  if (token) authToken = token;
   return token;
 }
 

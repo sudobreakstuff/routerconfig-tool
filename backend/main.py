@@ -4,13 +4,14 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api import devices, configs, discovery, diagnostics, templates, remote, actions, jobs, isp, settings
-from core.auth import require_token
+from core.auth import get_api_token, require_token
 from database.connection import init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    get_api_token()
     yield
 
 
