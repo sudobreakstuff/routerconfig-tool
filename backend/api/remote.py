@@ -60,7 +60,7 @@ async def get_connection_info(
 @router.post("/open-tunnel")
 async def open_ssh_tunnel(data: dict):
     """Check reachability and provide SSH tunnel command."""
-    import paramiko
+    from core.ssh_compat import create_ssh_client
 
     jump_ip = data.get("jump_host", "")
     jump_user = data.get("jump_username", "admin")
@@ -76,8 +76,7 @@ async def open_ssh_tunnel(data: dict):
     reachable = False
     route_info = ""
     try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh = create_ssh_client()
         ssh.connect(jump_ip, port=jump_port, username=jump_user, password=jump_pass, timeout=10, banner_timeout=8)
 
         # Try multiple route add formats (busybox-compatible, no 'dev' keyword)

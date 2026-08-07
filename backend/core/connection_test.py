@@ -49,9 +49,8 @@ async def test_device_connection(ip: str, username: str = "admin", password: str
     # Try SSH
     if (22 in ports or 8291 in ports) and not result["auth"]:
         try:
-            import paramiko
-            client = paramiko.SSHClient()
-            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            from core.ssh_compat import create_ssh_client
+            client = create_ssh_client()
             client.connect(ip, port=ssh_port, username=username, password=password,
                           timeout=8, banner_timeout=8, auth_timeout=8)
             result["auth"] = True

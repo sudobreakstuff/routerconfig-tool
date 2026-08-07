@@ -69,9 +69,8 @@ class TPLinkDriver(RouterDriver):
             pass
 
         try:
-            import paramiko
-            self._ssh_client = paramiko.SSHClient()
-            self._ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            from core.ssh_compat import create_ssh_client
+            self._ssh_client = create_ssh_client()
             self._ssh_client.connect(
                 self.connection.host,
                 port=self.connection.port,

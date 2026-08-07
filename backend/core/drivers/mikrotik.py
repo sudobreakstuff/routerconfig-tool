@@ -46,13 +46,11 @@ class MikroTikDriver(RouterDriver):
         return output
 
     async def connect(self) -> bool:
-        import paramiko
+        from core.ssh_compat import create_ssh_client
         try:
-            self._ssh_client = paramiko.SSHClient()
-            self._ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self._ssh_client = create_ssh_client()
             if self.connection.jump_host:
-                jump = paramiko.SSHClient()
-                jump.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                jump = create_ssh_client()
                 jump.connect(
                     self.connection.jump_host,
                     port=self.connection.jump_port or 22,

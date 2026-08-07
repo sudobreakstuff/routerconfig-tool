@@ -112,7 +112,8 @@ async def bandwidth_test(data: dict):
     Ping = ICMP latency from the device.
     Download = pull test file from speedtest server through the device.
     Upload = push data to test server through the device."""
-    import paramiko, time as _time
+    from core.ssh_compat import create_ssh_client
+    import time as _time
 
     host = data.get("host", "")
     username = data.get("username", "admin")
@@ -124,8 +125,7 @@ async def bandwidth_test(data: dict):
 
     r = {"download_mbps": 0, "upload_mbps": 0, "latency_ms": 0, "method": ""}
 
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh = create_ssh_client()
     try:
         ssh.connect(host, port=ssh_port, username=username, password=password, timeout=15, banner_timeout=10)
     except Exception as e:

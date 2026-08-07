@@ -5,6 +5,8 @@ import time
 
 import paramiko
 
+from core.ssh_compat import create_ssh_client
+
 
 class ConnectionPool:
     def __init__(self):
@@ -27,8 +29,7 @@ class ConnectionPool:
                 self._disconnect(key)
 
             # Open new connection
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh = create_ssh_client()
             ssh.connect(host, port=port, username=username, password=password, timeout=15, banner_timeout=10)
             self._connections[key] = {"ssh": ssh, "last_used": time.time()}
             return ssh
