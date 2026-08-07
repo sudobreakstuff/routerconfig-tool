@@ -82,17 +82,25 @@ class MikroTikDriver(RouterDriver):
 
     @property
     def capabilities(self) -> list[RouterCapabilities]:
-        return [RouterCapabilities.SSH, RouterCapabilities.API, RouterCapabilities.HTTP_ADMIN]
+        return [RouterCapabilities.SSH, RouterCapabilities.API, RouterCapabilities.HTTP_ADMIN, RouterCapabilities.WINBOX]
 
     async def _ssh_execute(self, command: str) -> str:
+        import asyncio
+        winbox = getattr(self, "_winbox", None)
+        if winbox is not None:
+            return await asyncio.get_event_loop().run_in_executor(
+                None, self._winbox_execute_sync, command
+            )
         if getattr(self, "_api", None):
             return await self._api_execute(command)
-        import asyncio
         if not self._ssh_client:
             raise RuntimeError("Not connected")
         return await asyncio.get_event_loop().run_in_executor(
             None, self._ssh_execute_sync, command
         )
+
+    def _winbox_execute_sync(self, command: str) -> str:
+        return self._winbox.exec_command(command, timeout=min(self.connection.timeout, 15))
 
     def _ssh_execute_sync(self, command: str) -> str:
         stdin, stdout, stderr = self._ssh_client.exec_command(command, timeout=min(self.connection.timeout, 15))
@@ -243,7 +251,57 @@ class MikroTikDriver(RouterDriver):
         except Exception:
             self._ssh_client = None
 
-        return await self._try_api_connect()
+        if await self._try_api_connect():
+            return True
+
+        return await self._try_winbox_connect()
+
+    async def _try_winbox_connect(self) -> bool:
+        """Fall back to the WinBox terminal protocol (port 8291) when SSH/API fail.
+
+        WinBox is the management port MikroTik exposes by default, so routers
+        reachable through the WinBox app (but not via SSH/API) still work.
+        """
+        try:
+            import asyncio
+            from core.winbox_terminal import WinboxTerminalClient
+            client = WinboxTerminalClient(
+                self.connection.host,
+                port=self.connection.winbox_port,
+                timeout=min(self.connection.timeout, 10),
+            )
+            connected = await asyncio.get_event_loop().run_in_executor(
+                None, client.connect
+            )
+            if connected is False:
+                raise RuntimeError("connect returned False")
+            await asyncio.get_event_loop().run_in_executor(
+                None,
+                client.authenticate,
+                self.connection.username,
+                self.connection.password,
+            )
+            opened = await asyncio.get_event_loop().run_in_executor(
+                None,
+                client.open_terminal,
+                self.connection.password,
+                120,
+                40,
+            )
+            if not opened:
+                client.close()
+                raise RuntimeError("failed to open terminal")
+            self._winbox = client
+            return True
+        except Exception:
+            wb = getattr(self, "_winbox", None)
+            if wb is not None:
+                try:
+                    wb.close()
+                except Exception:
+                    pass
+            self._winbox = None
+            return False
 
     async def _try_api_connect(self) -> bool:
         """Fall back to the RouterOS API (8728 plain / 8729 TLS) when SSH fails."""
@@ -281,6 +339,14 @@ class MikroTikDriver(RouterDriver):
             except Exception:
                 pass
             self._api = None
+        wb = getattr(self, "_winbox", None)
+        if wb is not None:
+            try:
+                import asyncio
+                await asyncio.get_event_loop().run_in_executor(None, wb.close)
+            except Exception:
+                pass
+            self._winbox = None
 
     async def is_reachable(self) -> bool:
         result = await self.ping_target(self.connection.host)

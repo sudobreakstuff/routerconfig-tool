@@ -158,7 +158,7 @@ export default function SetupWizard() {
                   {testResult.success && 'Connected successfully.'}
                   {testResult.ports?.length > 0 && <div style={{marginTop:4}}>Open ports: {testResult.ports.join(', ')}</div>}
                   {testResult.ports?.includes(8291) && !testResult.success && !testResult.error &&
-                    <div style={{marginTop:4, fontSize:11}}>WinBox port detected. Enable SSH or API service on the MikroTik and forward the port to connect.</div>}
+                    <div style={{marginTop:4, fontSize:11}}>WinBox port detected. Re-testing — the app can connect to MikroTik via the WinBox protocol (8291) directly.</div>}
                 </div>
               )}
             </div>

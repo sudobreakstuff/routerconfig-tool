@@ -27,6 +27,11 @@ hiddenimports = [
     "cryptography.hazmat.backends.openssl.rsa",
     "cryptography.hazmat.backends.openssl.ec",
     "pydantic",
+    "Crypto",
+    "Crypto.Cipher",
+    "Crypto.Hash",
+    "Crypto.Util.Padding",
+    "ecdsa",
 ]
 
 # Collect everything under backend/api, backend/core, backend/services, etc.

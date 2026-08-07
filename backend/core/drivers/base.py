@@ -21,6 +21,7 @@ class RouterCapabilities(str, Enum):
     SNMP = "snmp"
     TR069 = "tr069"
     API = "api"
+    WINBOX = "winbox"
 
 
 @dataclass
@@ -37,6 +38,7 @@ class RouterConnection:
     jump_username: str | None = None
     jump_password: str | None = None
     timeout: int = 30
+    winbox_port: int = 8291
 
 
 @dataclass

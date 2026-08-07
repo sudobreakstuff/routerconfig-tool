@@ -88,4 +88,39 @@ async def test_device_connection(ip: str, username: str = "admin", password: str
         except Exception:
             pass
 
+    # Try WinBox terminal protocol (MikroTik's management port 8291) when
+    # SSH/API both failed. This is the port the WinBox app itself uses, so
+    # routers reachable via WinBox but not SSH/API still work.
+    if not result["auth"] and 8291 in ports:
+        try:
+            from core.winbox_terminal import WinboxTerminalClient
+            client = WinboxTerminalClient(ip, port=8291, timeout=8)
+            await asyncio.get_event_loop().run_in_executor(None, client.connect)
+            await asyncio.get_event_loop().run_in_executor(
+                None, client.authenticate, username, password
+            )
+            if client.authenticated:
+                result["auth"] = True
+                result["brand"] = "mikrotik"
+                try:
+                    opened = await asyncio.get_event_loop().run_in_executor(
+                        None, client.open_terminal, password, 120, 40
+                    )
+                    if opened:
+                        ident = await asyncio.get_event_loop().run_in_executor(
+                            None, client.exec_command, "/system identity print", 10
+                        )
+                        for ln in ident.split("\n"):
+                            if "name:" in ln:
+                                result["model"] = ln.split(":", 1)[1].strip()
+                                break
+                except Exception:
+                    pass
+                try:
+                    await asyncio.get_event_loop().run_in_executor(None, client.close)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
     return result
