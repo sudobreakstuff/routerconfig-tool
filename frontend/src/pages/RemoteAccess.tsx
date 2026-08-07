@@ -18,6 +18,7 @@ export default function RemoteAccess() {
   const [creds, setCreds] = useState<Record<string,string>>({ host:'', username:'', password:'' });
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [brand, setBrand] = useState('');
   const [scanned, setScanned] = useState<any[]>([]);
   const [aliases, setAliases] = useState<any[]>([]);
   const [aliasIp, setAliasIp] = useState('');
@@ -55,17 +56,21 @@ export default function RemoteAccess() {
       const res = await persistentConnect(creds);
       setConnected(res.connected);
       if (res.connected) {
+        const isMikroTik = (res.brand || '').toLowerCase() === 'mikrotik' || (res.model || '').toLowerCase().includes('mikrotik');
+        setBrand(isMikroTik ? 'mikrotik' : (res.brand || ''));
         addOutput(`Connected: ${res.model} | FW: ${res.firmware} | MAC: ${res.mac || '?'}\n\n`);
         if (selId) try { await updateDevice(selId, { admin_user: creds.username, admin_password: creds.password }); } catch(_) {}
-        // Load existing aliases
-        try {
-          const o = await runSshCommand({ ...creds, command: 'cat /tmp/system.cfg 2>/dev/null | grep alias.ip' });
-          const re = /ip=(\d+\.\d+\.\d+\.\d+)/g;
-          const ips: string[] = []; let m;
-          while ((m = re.exec(o.output||'')) !== null) ips.push(m[1]);
-          setAliases([...new Set(ips)]);
-          if (ips.length) addOutput(`Existing aliases: ${ips.join(', ')}\n\n`);
-        } catch(_) {}
+        // Load existing aliases (Ubiquiti only)
+        if (!isMikroTik) {
+          try {
+            const o = await runSshCommand({ ...creds, command: 'cat /tmp/system.cfg 2>/dev/null | grep alias.ip' });
+            const re = /ip=(\d+\.\d+\.\d+\.\d+)/g;
+            const ips: string[] = []; let m;
+            while ((m = re.exec(o.output||'')) !== null) ips.push(m[1]);
+            setAliases([...new Set(ips)]);
+            if (ips.length) addOutput(`Existing aliases: ${ips.join(', ')}\n\n`);
+          } catch(_) {}
+        }
       } else {
         addOutput(`FAILED: ${res.error || 'check credentials'}\n`);
       }
@@ -166,7 +171,15 @@ export default function RemoteAccess() {
 
   const handleQuickAction = async (action: string) => {
     if (!connected) return;
-    const acts: Record<string,string> = {
+    const isMt = brand === 'mikrotik';
+    const acts: Record<string,string> = isMt ? {
+      reboot: '/system reboot',
+      factory_reset: '/system reset-configuration run-after-reset=no',
+      wifi_on: '/interface wireless enable [find]',
+      wifi_off: '/interface wireless disable [find]',
+      backup_config: '/export compact hide-sensitive',
+      show_clients: '/ip dhcp-server lease print; /ip arp print',
+    } : {
       reboot: 'reboot',
       factory_reset: 'mca-cli-op set-default && reboot',
       wifi_on: 'ifconfig ath0 up 2>/dev/null || ifconfig wlan0 up 2>/dev/null || true',

@@ -109,7 +109,7 @@ async def ssh_command(data: dict):
 
 @router.post("/connect")
 async def connect_device(data: dict):
-    """Open persistent SSH connection to a device."""
+    """Open persistent connection to a device (SSH, falling back to WinBox)."""
     host = data.get("host", "")
     username = data.get("username", "admin")
     password = data.get("password", "")
@@ -119,23 +119,44 @@ async def connect_device(data: dict):
         raise HTTPException(status_code=400, detail="host is required")
 
     try:
-        ssh = pool.get(host, username, password, port)
-        # Get device info to confirm it works
-        stdin, stdout, stderr = ssh.exec_command("mca-status 2>/dev/null || cat /proc/version 2>/dev/null || uname -a", timeout=10)
-        out = stdout.read().decode(errors="replace").strip()
+        conn = pool.get(host, username, password, port)
+        import paramiko
+        if isinstance(conn, paramiko.SSHClient):
+            # Get device info to confirm it works
+            stdin, stdout, stderr = conn.exec_command(
+                "mca-status 2>/dev/null || cat /proc/version 2>/dev/null || uname -a", timeout=10
+            )
+            out = stdout.read().decode(errors="replace").strip()
 
-        import re as _re
-        model = _re.search(r'platform=([^,]+)', out)
-        fw = _re.search(r'firmwareVersion=([^,]+)', out)
-        mac = _re.search(r'deviceMac=([0-9a-fA-F:]+)', out)
+            import re as _re
+            model = _re.search(r'platform=([^,]+)', out)
+            fw = _re.search(r'firmwareVersion=([^,]+)', out)
+            mac = _re.search(r'deviceMac=([0-9a-fA-F:]+)', out)
 
-        return {
-            "connected": True,
-            "host": host,
-            "model": model.group(1) if model else "unknown",
-            "firmware": fw.group(1) if fw else "unknown",
-            "mac": mac.group(1) if mac else "",
-        }
+            return {
+                "connected": True,
+                "host": host,
+                "model": model.group(1) if model else "unknown",
+                "firmware": fw.group(1) if fw else "unknown",
+                "mac": mac.group(1) if mac else "",
+                "brand": "ubiquiti",
+            }
+        else:
+            # WinBox connection
+            out = conn.exec_command("/system identity print", timeout=10)
+            model = ""
+            for line in out.split("\n"):
+                if "name:" in line:
+                    model = line.split(":", 1)[1].strip()
+                    break
+            return {
+                "connected": True,
+                "host": host,
+                "model": model or "MikroTik",
+                "firmware": "",
+                "mac": "",
+                "brand": "mikrotik",
+            }
     except Exception as e:
         return {"connected": False, "error": str(e)}
 
@@ -167,17 +188,27 @@ async def scan_from_device(data: dict):
 
     devices = []
 
-    # ARP scan from device
-    try:
-        out = await pool.execute(host, username, password, "arp -a 2>/dev/null; ip neigh show 2>/dev/null", port)
-        for line in out.split("\n"):
+    # ARP scan from device — try RouterOS syntax first (works via SSH/WinBox),
+    # then fall back to Linux-style for Ubiquiti/OpenWRT.
+    arp_cmds = [
+        "/ip arp print detail; /ip dhcp-server lease print detail",
+        "arp -a 2>/dev/null; ip neigh show 2>/dev/null",
+    ]
+    arp_out = ""
+    for cmd in arp_cmds:
+        try:
+            arp_out = await pool.execute(host, username, password, cmd, port)
+            if arp_out.strip():
+                break
+        except Exception:
+            continue
+    if arp_out:
+        for line in arp_out.split("\n"):
             ip = _re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
             mac = _re.search(r'([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}', line)
             if ip and not ip.group(1).startswith(("127.", "0.", "169.", "255.")):
                 m = mac.group(0) if mac else ""
                 devices.append({"ip": ip.group(1), "mac": m, "mac_vendor": lookup_vendor(m), "source": "arp"})
-    except Exception:
-        pass
 
     # DHCP leases
     try:
