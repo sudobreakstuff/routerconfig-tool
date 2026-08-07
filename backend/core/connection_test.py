@@ -64,4 +64,28 @@ async def test_device_connection(ip: str, username: str = "admin", password: str
         except Exception:
             pass
 
+    # Try RouterOS API (MikroTik native protocol on 8728/8729) when SSH failed.
+    if not result["auth"] and (8728 in ports or 8729 in ports):
+        try:
+            from core.routeros_api import RouterOSAPI
+            for port in (8728, 8729):
+                api = RouterOSAPI(ip, username=username, password=password,
+                                  port=port, use_ssl=(port == 8729),
+                                  timeout=8)
+                try:
+                    await api.connect()
+                    records = await api.call("/system/identity/print")
+                    await api.close()
+                    if records:
+                        result["auth"] = True
+                        result["brand"] = "mikrotik"
+                        identity = records[0].get("name", "")
+                        if identity:
+                            result["model"] = identity
+                        break
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
     return result

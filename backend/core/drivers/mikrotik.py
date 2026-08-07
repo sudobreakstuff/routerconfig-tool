@@ -17,6 +17,63 @@ from core.drivers.base import (
 )
 
 
+def _split_cli(command: str) -> list[str]:
+    """Split a RouterOS CLI command honoring quoted values and [find ...] groups."""
+    tokens: list[str] = []
+    current = ""
+    quote = None
+    bracket = 0
+    i = 0
+    n = len(command)
+    while i < n:
+        ch = command[i]
+        if quote:
+            if ch == quote:
+                quote = None
+            else:
+                current += ch
+        elif ch in ('"', "'"):
+            quote = ch
+        elif ch == "[":
+            bracket += 1
+            current += ch
+        elif ch == "]":
+            bracket -= 1
+            current += ch
+        elif ch.isspace() and bracket == 0:
+            if current:
+                tokens.append(current)
+                current = ""
+        else:
+            current += ch
+        i += 1
+    if current:
+        tokens.append(current)
+    return tokens
+
+
+def _format_print(records: list[dict], detail: bool = False) -> str:
+    """Format API print records like CLI text so existing parsers keep working."""
+    if detail:
+        out = []
+        for r in records:
+            parts = []
+            for k, v in r.items():
+                if k in (".id", "id"):
+                    continue
+                parts.append(f"{k}={v}")
+            out.append(" ".join(parts))
+        return "\n".join(out)
+    out = []
+    for r in records:
+        for k, v in r.items():
+            if k in (".id", "id"):
+                continue
+            out.append(f"{k}: {v}")
+        out.append("")
+    return "\n".join(out).rstrip()
+
+
 class MikroTikDriver(RouterDriver):
 
     @property
@@ -28,6 +85,8 @@ class MikroTikDriver(RouterDriver):
         return [RouterCapabilities.SSH, RouterCapabilities.API, RouterCapabilities.HTTP_ADMIN]
 
     async def _ssh_execute(self, command: str) -> str:
+        if getattr(self, "_api", None):
+            return await self._api_execute(command)
         import asyncio
         if not self._ssh_client:
             raise RuntimeError("Not connected")
@@ -43,7 +102,107 @@ class MikroTikDriver(RouterDriver):
             exit_status = -1
         output = stdout.read().decode(errors="replace").strip()
         return output
-        return output
+
+    async def _api_execute(self, command: str) -> str:
+        """Execute a RouterOS CLI command through the API instead of SSH.
+
+        Translates common CLI syntax (paths with spaces, `print`, `set/add/
+        remove/enable/disable`, `[find ...]` selectors, `=key=value` args) into
+        API sentences and formats replies as CLI-like text so existing parsing
+        keeps working.
+        """
+        from core.routeros_api import RouterOSAPIError
+
+        api = self._api
+        if api is None:
+            raise RuntimeError("Not connected via API")
+
+        cmd = command.strip()
+        if not cmd:
+            return ""
+
+        # /export compact hide-sensitive  ->  special
+        if cmd.startswith("/export"):
+            records = await api.call("/export")
+            lines = []
+            for r in records:
+                ret = r.get("ret", "")
+                if ret:
+                    lines.append(ret)
+            return "\n".join(lines)
+
+        tokens = _split_cli(cmd)
+        raw_path = [t for t in tokens if not t.startswith("=") and not t.startswith("[") and "=" not in t]
+        # `print detail` -> `detail` is a CLI flag, not part of the API path.
+        if len(raw_path) >= 2 and raw_path[-1] == "detail" and raw_path[-2] == "print":
+            raw_path = raw_path[:-1]
+        path = raw_path
+        action = path[-1] if path else ""
+        base = "/".join(p.lstrip("/") for p in path[:-1])
+        args: dict = {}
+        for t in tokens:
+            if t.startswith("="):
+                kv = t[1:]
+                if "=" in kv:
+                    k, _, v = kv.partition("=")
+                    args[k] = v.strip('"')
+                else:
+                    args[kv] = ""
+        query: dict = {}
+        for t in tokens:
+            if t.startswith("["):
+                inner = t[1:].rstrip("]").strip()
+                if inner in ("find", ""):
+                    continue
+                body = inner[5:].strip() if inner.startswith("find") else inner
+                for seg in _split_cli(body):
+                    if seg.startswith("="):
+                        kv = seg[1:]
+                    else:
+                        kv = seg
+                    if "=" in kv:
+                        k, _, v = kv.partition("=")
+                        query[k] = v.strip('"')
+                    else:
+                        query[kv] = ""
+
+        if not base and action in ("login",):
+            return ""
+
+        if action == "print":
+            records = await api.call(f"/{base}/print" if base else "/print", **query)
+            return _format_print(records, detail=("detail" in args))
+        elif action in ("add", "set", "remove", "enable", "disable", "unset"):
+            ids: list[str] | None = None
+            if "numbers" in args:
+                ids = [args["numbers"]]
+            elif query or "[find" in cmd:
+                ids = await self._api_find_ids(base, query)
+            api_path = f"/{base}/{action}"
+            params = {k: v for k, v in args.items() if k != "numbers"}
+            if ids and len(ids) == 1 and action in ("enable", "disable", "remove"):
+                params["numbers"] = ids[0]
+            elif ids:
+                params["numbers"] = ",".join(ids)
+            try:
+                await api.call(api_path, **params)
+            except RouterOSAPIError as e:
+                if "already" in str(e).lower():
+                    return ""
+                raise
+            return ""
+        else:
+            try:
+                await api.call("/" + "/".join(p.lstrip("/") for p in path))
+            except RouterOSAPIError as e:
+                if "already" in str(e).lower():
+                    return ""
+                raise
+            return ""
+
+    async def _api_find_ids(self, base: str, query: dict) -> list[str]:
+        records = await self._api.call(f"/{base}/print", **query)
+        return [r.get(".id") or r.get("id") for r in records if r.get(".id") or r.get("id")]
 
     async def connect(self) -> bool:
         from core.ssh_compat import create_ssh_client
@@ -82,7 +241,32 @@ class MikroTikDriver(RouterDriver):
                 )
             return True
         except Exception:
-            return False
+            self._ssh_client = None
+
+        return await self._try_api_connect()
+
+    async def _try_api_connect(self) -> bool:
+        """Fall back to the RouterOS API (8728 plain / 8729 TLS) when SSH fails."""
+        from core.routeros_api import RouterOSAPI
+
+        for port, use_ssl in ((8728, False), (8729, True)):
+            api = RouterOSAPI(
+                self.connection.host,
+                username=self.connection.username,
+                password=self.connection.password,
+                port=port,
+                use_ssl=use_ssl,
+                timeout=min(self.connection.timeout, 10),
+            )
+            try:
+                await api.connect()
+                self._api = api
+                self._api_port = port
+                return True
+            except Exception:
+                continue
+        self._api = None
+        return False
 
     async def disconnect(self) -> None:
         if self._ssh_client:
@@ -90,6 +274,13 @@ class MikroTikDriver(RouterDriver):
             self._ssh_client = None
         if hasattr(self, "_jump_client") and self._jump_client:
             self._jump_client.close()
+        api = getattr(self, "_api", None)
+        if api:
+            try:
+                await api.close()
+            except Exception:
+                pass
+            self._api = None
 
     async def is_reachable(self) -> bool:
         result = await self.ping_target(self.connection.host)
